@@ -7,8 +7,13 @@ import {
   IconDeviceGamepad2,
   IconDeviceTvOldFilled,
   IconMeepleFilled,
+  IconNumber,
+  IconNumber0Small,
+  IconNumber1,
   IconPacman,
   IconPasswordUser,
+  IconPlayCard10,
+  IconRosetteNumber9,
   IconSettings,
   IconUserBolt,
 } from "@tabler/icons-react";
@@ -43,6 +48,13 @@ export function SidebarDemo({ children }: { children: React.ReactNode }) {
       href: "/admin/televizyonlar",
       icon: (
         <IconDeviceTvOldFilled className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    },
+    {
+      label: "Masalar",
+      href: "/admin/masalar",
+      icon: (
+        <IconNumber className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {
