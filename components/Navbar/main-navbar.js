@@ -5,36 +5,35 @@ import {
   NavItems,
   MobileNav,
   NavbarLogo,
-  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
-import Link from "next/link";
 import { useState } from "react";
+import { ThemeToggleButton } from "@/components/Navbar/theme-toggle-button";
 
-export function NavbarDemo({children,navItems}){
-  
-
+export function MainNavbar({  navItems }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative w-full">
+    <div className="sticky top-0 z-50   w-full">
       <Navbar>
         {/* Desktop Navigation */}
         <NavBody>
-          <NavbarLogo href="/" name="Deplasman"/> 
+          <NavbarLogo href="/" name="Deplasman" />
           <NavItems items={navItems} />
-          <div className="flex items-center gap-4">
-            <NavbarButton variant="secondary">Login</NavbarButton>
-            <NavbarButton variant="primary">Book a call</NavbarButton>
+          <div className="flex items-center gap-4"></div>
+          <div className="flex items-center gap-4 relative z-50">
+            <ThemeToggleButton />
+            {/* <NavbarButton variant="secondary">Giriş</NavbarButton>    ADMİN EKRANI OLUNCA GİRİŞ DİYE EKLENECE*/}
           </div>
         </NavBody>
 
         {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
-            <NavbarLogo href="/" name="Dep"/>
+            <NavbarLogo href="/" name="Dep" />
+            <ThemeToggleButton />
             <MobileNavToggle
               isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -55,29 +54,22 @@ export function NavbarDemo({children,navItems}){
                 <span className="block">{item.name}</span>
               </a>
             ))}
-            <div className="flex w-full flex-col gap-4">
+            {/* <div className="flex w-full flex-col gap-4">
               <NavbarButton
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"
                 className="w-full"
               >
-                Login
+                Giriş
               </NavbarButton>
-              <NavbarButton
-                onClick={() => setIsMobileMenuOpen(false)}
-                variant="primary"
-                className="w-full"
-              >
-                Book a call
-              </NavbarButton>
-            </div>
+              
+            </div> 
+            ADMİN EKRANI GELİNCE
+            */}
           </MobileNavMenu>
         </MobileNav>
       </Navbar>
-{children}
       {/* Navbar */}
     </div>
   );
 }
-
-

@@ -1,8 +1,10 @@
+import { ThemeToggleButton } from "@/components/Navbar/theme-toggle-button";
 import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="container mx-auto p-8 pt-24">
+       <ThemeToggleButton />
       <h1 className="mb-4 text-center text-3xl font-bold">
         Check the navbar at the top of the container
       </h1>
