@@ -4,6 +4,7 @@ function IletisimPage() {
   return (
     <div>
       İleitişim Sayfası
+      
     </div>
   )
 }
