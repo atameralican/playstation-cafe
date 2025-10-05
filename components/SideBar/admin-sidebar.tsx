@@ -3,24 +3,16 @@ import React, { useState } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "../ui/sidebar";
 import {
   IconArrowLeft,
-  IconBrandTabler,
   IconDeviceGamepad2,
   IconDeviceTvOldFilled,
-  IconMeepleFilled,
   IconNumber,
-  IconNumber0Small,
-  IconNumber1,
   IconPacman,
   IconPasswordUser,
-  IconPlayCard10,
-  IconRosetteNumber9,
-  IconSettings,
-  IconUserBolt,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
-export function SidebarDemo({ children }: { children: React.ReactNode }) {
+export function SidebarAdmin({ children }: { children: React.ReactNode }) {
   const links = [
     {
       label: "Playstationlar",
@@ -66,7 +58,7 @@ export function SidebarDemo({ children }: { children: React.ReactNode }) {
     },
   ];
   const [open, setOpen] = useState(false);
-  
+
   return (
     <div
       className={cn(

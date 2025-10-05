@@ -1,5 +1,5 @@
+import { SidebarAdmin } from "@/components/SideBar/admin-sidebar";
 import type { Metadata } from "next";
-import { SidebarDemo } from "@/components/SideBar/admin-sidebar";
 
 export const metadata: Metadata = {
   title: "Admin Panel - Deplasman Playstation",
@@ -11,5 +11,5 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <SidebarDemo>{children}</SidebarDemo>;
+  return <SidebarAdmin>{children}</SidebarAdmin>;
 }
