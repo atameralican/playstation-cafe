@@ -27,18 +27,17 @@ export default function RootLayout({
 }>) {
   return (
    <html lang="tr" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased min-h-screen flex flex-col">
         <ThemeProvider>
-          {/* Navbar server component olarak */}
           <MainNavbar navItems={navItems} />
 
-          {/* Sayfa içeriği navbar dışında */}
-          <main className="mt-10 container mx-auto p-8">
+          <main className="flex-1 overflow-y-auto container mx-auto p-8">
             {children}
           </main>
+
           <MainFooter />
         </ThemeProvider>
       </body>
-    </html> 
+    </html>
   );
 }
