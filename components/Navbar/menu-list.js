@@ -11,4 +11,8 @@
       name: "Oyun Listesi",
       link: "/oyun-listesi",
     },
+    {
+      name: "Admin",
+      link: "/admin",
+    },
   ];
