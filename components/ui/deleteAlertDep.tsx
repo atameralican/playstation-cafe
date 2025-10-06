@@ -1,5 +1,6 @@
-import { AlertDialog, Button, Flex } from '@radix-ui/themes'
-import React from 'react'
+import { AlertDialog, Button, Flex,  } from "@radix-ui/themes";
+import { IconX } from "@tabler/icons-react";
+import React from "react";
 
 function DeleteAlertModal({
   btnText = "Sil",
@@ -11,13 +12,15 @@ function DeleteAlertModal({
   btnText?: string;
   title?: string;
   text?: string;
-  cancelBtnText?:string;
+  cancelBtnText?: string;
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 }) {
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger>
-        <Button color="red">{btnText}</Button>
+        <Button size="1" color="red" variant="ghost">
+          <IconX width="15" height="15" />
+        </Button>
       </AlertDialog.Trigger>
       <AlertDialog.Content maxWidth="450px">
         <AlertDialog.Title>{title}</AlertDialog.Title>
@@ -40,4 +43,4 @@ function DeleteAlertModal({
   );
 }
 
-export default DeleteAlertModal
+export default DeleteAlertModal;

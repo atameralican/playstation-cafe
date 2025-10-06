@@ -6,7 +6,7 @@ import { useDropzone } from "react-dropzone";
 
 const mainVariant = {
   initial: { x: 0, y: 0 },
-  animate: { x: 20, y: -20, opacity: 0.9 },
+  animate: { x: 20, y: -10, opacity: 0.9 },
 };
 
 const secondaryVariant = {
@@ -86,15 +86,15 @@ export const FileUpload = ({
             {label}
           </p>}
           
-          <div className="relative w-full mt-2 max-w-xl mx-auto">
+          <div className="relative w-full mt-2-  mx-auto">
             {files.length > 0 &&
               files.map((file, idx) => (
                 <motion.div
                   key={"file" + idx}
                   layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
                   className={cn(
-                    "relative overflow-hidden z-40 bg-white dark:bg-neutral-900 flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
-                    "shadow-sm"
+                    "bg-gray-100 dark:bg-neutral-800 mt-2 px-2 text-neutral-500 dark:text-neutral-400 opacity-80 ",
+    "shadow-inner"
                   )}
                 >
                   <div className="flex justify-between w-full items-center gap-4">
@@ -116,7 +116,7 @@ export const FileUpload = ({
                     </motion.p>
                   </div>
 
-                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                  {/* <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -133,7 +133,7 @@ export const FileUpload = ({
                     >
                       modified {new Date(file.lastModified).toLocaleDateString()}
                     </motion.p>
-                  </div>
+                  </div> */}
                 </motion.div>
               ))}
             {!files.length && (
@@ -146,7 +146,7 @@ export const FileUpload = ({
                   damping: 20,
                 }}
                 className={cn(
-                  "relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
+                  "relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-10 mt-2 w-full max-w-[10rem] mx-auto- rounded-md",
                   "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                 )}
               >
@@ -168,7 +168,7 @@ export const FileUpload = ({
             {!files.length && (
               <motion.div
                 variants={secondaryVariant}
-                className="absolute opacity-0 border border-dashed border-sky-400 inset-0 z-30 bg-transparent flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md"
+                className="absolute opacity-0 border border-dashed border-sky-400 inset-0 z-30 bg-transparent flex items-center justify-center h-10 mt-2 w-full max-w-[10rem] mx-auto- rounded-md"
               ></motion.div>
             )}
           </div>
