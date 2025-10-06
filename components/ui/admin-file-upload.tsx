@@ -1,28 +1,17 @@
 import { cn } from "@/lib/utils";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 
 const mainVariant = {
-  initial: {
-    x: 0,
-    y: 0,
-  },
-  animate: {
-    x: 20,
-    y: -20,
-    opacity: 0.9,
-  },
+  initial: { x: 0, y: 0 },
+  animate: { x: 20, y: -20, opacity: 0.9 },
 };
 
 const secondaryVariant = {
-  initial: {
-    opacity: 0,
-  },
-  animate: {
-    opacity: 1,
-  },
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
 };
 
 export const FileUpload = ({
@@ -30,19 +19,29 @@ export const FileUpload = ({
   title,
   label,
   single,
+  reset, // Yeni prop
 }: {
   onChange?: (files: File[]) => void;
   title?: string;
   label?: string;
   single?: boolean;
+  reset?: boolean; // Opsiyonel reset trigger
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Reset trigger'ı dinle
+  useEffect(() => {
+    if (reset) {
+      setFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [reset]);
+
   const handleFileChange = (newFiles: File[]) => {
-    // setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-    // onChange && onChange(newFiles);
-   if (single) {
+    if (single) {
       setFiles(newFiles.slice(0, 1));
       onChange && onChange(newFiles.slice(0, 1));
     } else {
@@ -56,13 +55,7 @@ export const FileUpload = ({
   };
 
   const { getRootProps, isDragActive } = useDropzone({
-    // multiple: false,
-    // noClick: true,
-    // onDrop: handleFileChange,
-    // onDropRejected: (error) => {
-    //   console.log(error);
-    // },
-     multiple: !single,
+    multiple: !single,
     noClick: true,
     onDrop: handleFileChange,
     onDropRejected: (error) => {
@@ -84,16 +77,15 @@ export const FileUpload = ({
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
         />
-        {/* <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
-          <GridPattern />
-        </div> */}
+        
         <div className="flex flex-col items-start justify-center">
-          {title&&<p className="relative z-20 font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
+          {title && <p className="relative z-20 font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
             {title}
           </p>}
-          {label&&<p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
-           {label}
+          {label && <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
+            {label}
           </p>}
+          
           <div className="relative w-full mt-2 max-w-xl mx-auto">
             {files.length > 0 &&
               files.map((file, idx) => (
@@ -139,8 +131,7 @@ export const FileUpload = ({
                       animate={{ opacity: 1 }}
                       layout
                     >
-                      modified{" "}
-                      {new Date(file.lastModified).toLocaleDateString()}
+                      modified {new Date(file.lastModified).toLocaleDateString()}
                     </motion.p>
                   </div>
                 </motion.div>
@@ -186,27 +177,3 @@ export const FileUpload = ({
     </div>
   );
 };
-
-export function GridPattern() {
-  const columns = 41;
-  const rows = 11;
-  return (
-    <div className="flex bg-gray-100 dark:bg-neutral-900 shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px  scale-105">
-      {Array.from({ length: rows }).map((_, row) =>
-        Array.from({ length: columns }).map((_, col) => {
-          const index = row * columns + col;
-          return (
-            <div
-              key={`${col}-${row}`}
-              className={`w-10 h-10 flex shrink-0 rounded-[2px] ${
-                index % 2 === 0
-                  ? "bg-gray-50 dark:bg-neutral-950"
-                  : "bg-gray-50 dark:bg-neutral-950 shadow-[0px_0px_1px_3px_rgba(255,255,255,1)_inset] dark:shadow-[0px_0px_1px_3px_rgba(0,0,0,1)_inset]"
-              }`}
-            />
-          );
-        })
-      )}
-    </div>
-  );
-}
