@@ -1,3 +1,4 @@
+import LoaderDeplasman from '@/components/ui/loaderDep';
 import React from 'react';
 
 export default function AdminPage() {
@@ -6,6 +7,9 @@ export default function AdminPage() {
       <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-100">
         Dashboard
       </h1>
+
+     <button></button>
+      <LoaderDeplasman visible={false}/>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, idx) => (
           <div

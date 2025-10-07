@@ -5,6 +5,7 @@ import { navItems } from "@/components/Navbar/menu-list";
 import { MainNavbar } from "@/components/Navbar/main-navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 import MainFooter from "@/components/Footer/main-footer";
+import GlobalLoadingOverlay from "@/components/useServiceHook/GlobalLoadingOverlay";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
 
           <main className="flex-1 overflow-y-auto container mx-auto p-8">
             {children}
+            <GlobalLoadingOverlay />
           </main>
 
           <MainFooter />

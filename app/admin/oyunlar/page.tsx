@@ -16,6 +16,7 @@ import { FileUpload } from "@/components/ui/admin-file-upload";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import GameAddPageCard from "@/components/ui/game-add-card";
 import { showAlert } from "@/components/ui/alertDep";
+import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 
 interface Oyun {
   id: number;
@@ -41,17 +42,34 @@ export default function OyunlarPage() {
     oyunlariYukle();
   }, []);
 
+  // const oyunlariYukle = async () => {
+  //   try {
+  //     const response = await fetch("/api/oyunlar");
+  //     const data = await response.json();
+  //     if (Array.isArray(data)) {
+  //       setOyunlar(data);
+  //     }
+  //   } catch (error) {
+  //     showAlert(`Oyunlar yüklenemedi: ${error}`, "error");
+  //   }
+  // };
+const { serviseGit } = useServiceHook();
   const oyunlariYukle = async () => {
-    try {
-      const response = await fetch("/api/oyunlar");
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setOyunlar(data);
-      }
-    } catch (error) {
-      showAlert(`Oyunlar yüklenemedi: ${error}`, "error");
-    }
+    await serviseGit<Oyun[]>({
+      url: "/api/oyunlar",
+      loadingText: "Oyunlar yükleniyor...",
+      onSuccess: (data) => {
+        // data geldiğinde ne yapılacak
+        setOyunlar(data as Oyun[]); // State'i güncelle
+      },
+      onError: (error) => {
+        // Hata olduğunda ne yapılacak
+        console.error("Hata:", error.message);
+        alert("Oyunlar yüklenemedi!");
+      },
+    });
   };
+
 
   const handleFileUpload = (files: File[]) => {
     setFiles(files);
