@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimationControls, Variants } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface LoaderDeplasmanProps {
   visible?: boolean;
@@ -13,28 +13,75 @@ export default function LoaderDeplasman({ visible = true }: LoaderDeplasmanProps
   const l2 = useAnimationControls();
   const r1 = useAnimationControls();
   const tri = useAnimationControls();
+  
+  const isCancelledRef = useRef(false);
+  const isRunningRef = useRef(false);
 
   useEffect(() => {
-    if (!visible) return;
+    isCancelledRef.current = false;
+
+    if (!visible) {
+      c1.stop();
+      l1.stop();
+      l2.stop();
+      r1.stop();
+      tri.stop();
+      return;
+    }
+
+    if (isRunningRef.current) return;
 
     const runSequence = async () => {
-      while (visible) {
-        await Promise.all([
-          c1.start("hidden"),
-          l1.start("hidden"),
-          l2.start("hidden"),
-          r1.start("hidden"),
-          tri.start("hidden"),
-        ]);
+      isRunningRef.current = true;
 
-        await c1.start("visible");
-        await l1.start("visible");
-        await l2.start("visible");
-        await r1.start("visible");
-        await tri.start("visible");
+      try {
+        while (!isCancelledRef.current) {
+          await Promise.all([
+            c1.start("hidden"),
+            l1.start("hidden"),
+            l2.start("hidden"),
+            r1.start("hidden"),
+            tri.start("hidden"),
+          ]);
+
+          if (isCancelledRef.current) break;
+
+          await c1.start("visible");
+          if (isCancelledRef.current) break;
+
+          await l1.start("visible");
+          if (isCancelledRef.current) break;
+
+          await l2.start("visible");
+          if (isCancelledRef.current) break;
+
+          await r1.start("visible");
+          if (isCancelledRef.current) break;
+
+          await tri.start("visible");
+          if (isCancelledRef.current) break;
+
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      } catch (error) {
+        console.log("Animation cancelled");
+      } finally {
+        isRunningRef.current = false;
       }
     };
+
     runSequence();
+
+    return () => {
+      isCancelledRef.current = true;
+      isRunningRef.current = false;
+      
+      c1.stop();
+      l1.stop();
+      l2.stop();
+      r1.stop();
+      tri.stop();
+    };
   }, [visible, c1, l1, l2, r1, tri]);
 
   if (!visible) return null;
@@ -112,7 +159,6 @@ export default function LoaderDeplasman({ visible = true }: LoaderDeplasmanProps
 }
 
 /* Styles */
-
 const backdrop: React.CSSProperties = {
   position: "fixed",
   inset: 0,
