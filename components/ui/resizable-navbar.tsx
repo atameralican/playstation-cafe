@@ -246,13 +246,14 @@ export const NavbarLogo = ({href,name,logo,alt}:NavbarLogoProps) => {
       href={href}
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
-      <Image
+      {logo&&<Image
         src={logo}
         alt={alt||"logo"}
         width={30}
         height={30}
         className="object-cover scale-205"
-      />
+      />}
+      
       <span className="font-medium text-black dark:text-white">{name??""}</span>
     </Link>
   );
