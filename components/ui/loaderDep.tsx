@@ -142,7 +142,7 @@ const draw: Variants = {
     pathLength: 1,
     opacity: 1,
     transition: {
-      pathLength: { type: "spring", duration: 0.8, bounce: 0 },
+      pathLength: { type: "spring", duration: 0.5, bounce: 0 },
       opacity: { duration: 0.5 },
     },
   },

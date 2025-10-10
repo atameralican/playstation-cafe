@@ -16,18 +16,17 @@ export function ThemeToggleButton() {
   if (!mounted) {
     return (
       <Button variant="outline" size="icon">
-        {/* SSR sırasında boş ikon */}
       </Button>
     )
   }
 
   return (
-   <a> <Button
+  <Button
       variant="outline"
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
     >
       {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-    </Button></a>
+    </Button>
   )
 }

@@ -10,13 +10,12 @@ import {
 } from "@/lib/adminPages";
 import React, { useState, useEffect } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
-import { Button } from "@/components/ui/button";
-import { IconPlus,   } from "@tabler/icons-react";
 import { FileUpload } from "@/components/ui/admin-file-upload";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import GameAddPageCard from "@/components/ui/game-add-card";
 import { showAlert } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
+import { Button } from "@radix-ui/themes";
 
 interface Oyun {
   id: number;
@@ -30,88 +29,65 @@ interface Oyun {
 }
 
 export default function OyunlarPage() {
-  const [data, setData] = useState({oyunAdi:"",psType:"2",person:"2",gameType:"",eaMi:"1",});
+  const [data, setData] = useState({
+    oyunAdi: "",
+    psType: "2",
+    person: "2",
+    gameType: "",
+    eaMi: "1",
+  });
   const [files, setFiles] = useState<File[]>([]);
   const [oyunlar, setOyunlar] = useState<Oyun[]>([]);
-  const [yukleniyor, setYukleniyor] = useState(false);
   const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const [mevcutGorsel, setMevcutGorsel] = useState<string | null>(null);
   const [resetFileUpload, setResetFileUpload] = useState(false);
-  
+  const { serviseGit } = useServiceHook();
+
   useEffect(() => {
     oyunlariYukle();
   }, []);
 
-  // const oyunlariYukle = async () => {
-  //   try {
-  //     const response = await fetch("/api/oyunlar");
-  //     const data = await response.json();
-  //     if (Array.isArray(data)) {
-  //       setOyunlar(data);
-  //     }
-  //   } catch (error) {
-  //     showAlert(`Oyunlar yüklenemedi: ${error}`, "error");
-  //   }
-  // };
-const { serviseGit } = useServiceHook();
   const oyunlariYukle = async () => {
     await serviseGit<Oyun[]>({
       url: "/api/oyunlar",
-      loadingText: "Oyunlar yükleniyor...",
       onSuccess: (data) => {
-        // data geldiğinde ne yapılacak
-        setOyunlar(data as Oyun[]); // State'i güncelle
+        setOyunlar(data as Oyun[]);
       },
       onError: (error) => {
-        // Hata olduğunda ne yapılacak
-        console.error("Hata:", error.message);
-        alert("Oyunlar yüklenemedi!");
+        showAlert(`Oyunlar yüklenemedi: ${error.message}`, "error");
       },
     });
   };
-
 
   const handleFileUpload = (files: File[]) => {
     setFiles(files);
   };
 
   const formuTemizle = () => {
-     setData((prev) => ({
-      ...prev,
+    setData({
       oyunAdi: "",
       gameType: "",
-      psType:  "2",
+      psType: "2",
       person: "2",
-      eaMi:"1",
-    }));
-    // setOyunAdi("");
-    
+      eaMi: "1",
+    });
+
     setDuzenlenenId(null);
     setMevcutGorsel(null);
     setFiles([]);
-
-    // FileUpload'u reset et
     setResetFileUpload(true);
     setTimeout(() => setResetFileUpload(false), 100);
   };
 
   const oyunDuzenle = (oyun: Oyun) => {
     setDuzenlenenId(oyun.id);
-    setData((prev) => ({
-      ...prev,
+    setData({
       oyunAdi: oyun.oyun_adi,
       gameType: oyun.kategori,
       psType: oyun.cihaz_turu === "ps3" ? "1" : "2",
       person: oyun.kac_kisilik.toString(),
-      eaMi:oyun.ea_playde_mi ? "1" : "2"
-    }));
-    // setOyunAdi(oyun.oyun_adi);
-    // setGameType(oyun.kategori);
-    // setPsType(oyun.cihaz_turu === "ps3" ? "1" : "2");
-    // setPerson(oyun.kac_kisilik.toString());
-    // setEaMi(oyun.ea_playde_mi ? "1" : "2");
-
-    // Mevcut görseli kaydet (yeni görsel seçilmezse bu kullanılacak)
+      eaMi: oyun.ea_playde_mi ? "1" : "2",
+    });
     setMevcutGorsel(oyun.gorsel);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -119,81 +95,76 @@ const { serviseGit } = useServiceHook();
 
   const oyunKaydet = async () => {
     if (!data.oyunAdi || !data.gameType) {
-      showAlert("Lütfen oyun adı ve kategori giriniz!","error");
+      showAlert("Lütfen oyun adı ve kategori giriniz!", "error");
       return;
     }
 
-    setYukleniyor(true);
+    // Yeni görsel varsa base64'e çevir, yoksa mevcut görseli kullan
+    let gorselUrl = mevcutGorsel;
 
-    try {
-      // Yeni görsel varsa base64'e çevir, yoksa mevcut görseli kullan
-      let gorselUrl = mevcutGorsel; // Default: mevcut görsel
+    if (files.length > 0) {
+      const reader = new FileReader();
+      gorselUrl = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(files[0]);
+      });
+    }
 
-      if (files.length > 0) {
-        // Yeni görsel seçildiyse (şimdilik base64 - sonra UploadThing ekleyeceğiz)
-        const reader = new FileReader();
-        gorselUrl = await new Promise<string>((resolve) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(files[0]);
-        });
-      }
+    const oyunData = {
+      oyunAdi: data?.oyunAdi,
+      cihazTuru: data.psType === "1" ? "ps3" : "ps4-ps5",
+      kacKisilik: data.person,
+      kategori: data.gameType,
+      eaPlaydeMi: data.eaMi,
+      gorselUrl,
+    };
 
-      const oyunData = {
-        oyunAdi:data?.oyunAdi,
-        cihazTuru: data.psType === "1" ? "ps3" : "ps4-ps5",
-        kacKisilik: data.person,
-        kategori: data.gameType,
-        eaPlaydeMi: data.eaMi,
-        gorselUrl,
-      };
-
-      let response;
-
-      if (duzenlenenId) {
-        response = await fetch("/api/oyunlar", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: duzenlenenId, ...oyunData }),
-        });
-      } else {
-        response = await fetch("/api/oyunlar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(oyunData),
-        });
-      }
-
-      if (response.ok) {
-        showAlert(duzenlenenId ? "Oyun güncellendi!" : "Oyun eklendi!","success");
-        formuTemizle();
-        oyunlariYukle();
-      } else {
-        const errorData = await response.json();
-        showAlert("Hata: " + (errorData.error || "İşlem başarısız","error"));
-      }
-    } catch (error) {
-      console.error("Hata:", error);
-      showAlert("Bir hata oluştu!","error");
-    } finally {
-      setYukleniyor(false);
+    if (duzenlenenId) {
+      // Güncelleme işlemi
+      await serviseGit({
+        url: "/api/oyunlar",
+        method: "PUT",
+        body: { id: duzenlenenId, ...oyunData },
+        onSuccess: () => {
+          showAlert("Oyun güncellendi!", "success");
+          formuTemizle();
+          oyunlariYukle();
+        },
+        onError: (error) => {
+          showAlert(`Güncelleme hatası: ${error.message}`, "error");
+        },
+      });
+    } else {
+      // Ekleme işlemi
+      await serviseGit({
+        url: "/api/oyunlar",
+        method: "POST",
+        body: oyunData,
+        onSuccess: () => {
+          showAlert("Oyun eklendi!", "success");
+          formuTemizle();
+          oyunlariYukle();
+        },
+        onError: (error) => {
+          showAlert(`Ekleme hatası: ${error.message}`, "error");
+        },
+      });
     }
   };
 
- const oyunSil = async (id: number) => {
-  try {
-    const response = await fetch(`/api/oyunlar?id=${id}`, { method: "DELETE" });
-    if (response.ok) {
-      showAlert("Oyun silme işlemi başarılı.", "success");
-      oyunlariYukle();
-    } else {
-      showAlert("Silme işlemi başarısız ❌", "error");
-    }
-  } catch (error) {
-    console.error("Silme hatası:", error);
-    showAlert("Silme hatası oluştu ❌", "error");
-  }
-};
-
+  const oyunSil = async (id: number) => {
+    await serviseGit({
+      url: `/api/oyunlar?id=${id}`,
+      method: "DELETE",
+      onSuccess: () => {
+        showAlert("Oyun silme işlemi başarılı.", "success");
+        oyunlariYukle();
+      },
+      onError: (error) => {
+        showAlert(`Silme hatası: ${error.message}`, "error");
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -203,14 +174,10 @@ const { serviseGit } = useServiceHook();
             Oyunlar
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            {duzenlenenId ? "Oyun düzenleniyor" : "Yeni oyun ekle"}
+            Yeni oyun ekle veya mevcut oyunları düzenle.
           </p>
         </div>
-        {duzenlenenId && (
-          <Button onClick={formuTemizle} variant="outline">
-            İptal Et
-          </Button>
-        )}
+       
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
@@ -240,11 +207,12 @@ const { serviseGit } = useServiceHook();
             data={oyunTurleri}
             value={data.gameType}
             placeholder="Seçiniz"
-            onValueChange={(e)=>setData((prev) => ({
+            onValueChange={(e) =>
+              setData((prev) => ({
                 ...prev,
                 gameType: e,
-              }))}
-            // onValueChange={setGameType}
+              }))
+            }
           />
         </div>
 
@@ -255,11 +223,12 @@ const { serviseGit } = useServiceHook();
           <SegmentedDep
             data={customPsType}
             value={data.psType}
-            // onValueChange={setPsType}
-            onValueChange={(e)=>setData((prev) => ({
+            onValueChange={(e) =>
+              setData((prev) => ({
                 ...prev,
                 psType: e,
-              }))}
+              }))
+            }
             radius="full"
             size="2"
           />
@@ -273,11 +242,12 @@ const { serviseGit } = useServiceHook();
             <SegmentedDep
               data={kisiSayisi}
               value={data?.person}
-              // onValueChange={setPerson}
-              onValueChange={(e)=>setData((prev) => ({
-                ...prev,
-                person: e,
-              }))}
+              onValueChange={(e) =>
+                setData((prev) => ({
+                  ...prev,
+                  person: e,
+                }))
+              }
               radius="full"
               size="2"
             />
@@ -290,11 +260,12 @@ const { serviseGit } = useServiceHook();
             <SegmentedDep
               data={evetHayir}
               value={data.eaMi}
-              onValueChange={(e)=>setData((prev) => ({
-                ...prev,
-                eaMi: e,
-              }))}
-              // onValueChange={setEaMi}
+              onValueChange={(e) =>
+                setData((prev) => ({
+                  ...prev,
+                  eaMi: e,
+                }))
+              }
               radius="full"
               size="2"
             />
@@ -308,16 +279,19 @@ const { serviseGit } = useServiceHook();
           <FileUpload
             single
             onChange={handleFileUpload}
-            // title="Oyun Görseli"
-            reset={resetFileUpload} // Reset prop'u ekle
+            reset={resetFileUpload}
           />
         </div>
 
-        <div className="lg:col-span-2 xl:col-span-2 lg:self-end">
-          <Button onClick={oyunKaydet} disabled={yukleniyor} variant="outline">
-            <IconPlus />{" "}
-            {yukleniyor ? "İşleniyor..." : duzenlenenId ? "Güncelle" : "Ekle"}
+        <div className="lg:col-span-2 xl:col-span-2 lg:self-end flex gap-y-2 gap-x-2 gap-2">
+          <Button onClick={oyunKaydet} color="blue" variant="surface">
+            {duzenlenenId ? "Güncelle" : "Ekle"}
           </Button>
+          {duzenlenenId && (
+            <Button onClick={formuTemizle} color="red" variant="surface">
+              İptal Et
+            </Button>
+          )}
         </div>
       </div>
 

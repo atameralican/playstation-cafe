@@ -1,8 +1,16 @@
-import { Avatar, Badge, Box, Card, Flex, IconButton, Text } from '@radix-ui/themes';
-import { IconEdit } from '@tabler/icons-react';
-import React from 'react';
-import DeleteAlertModal from './deleteAlertDep';
-
+import {
+  Badge,
+  Box,
+  Card,
+  Flex,
+  IconButton,
+  Text,
+} from "@radix-ui/themes";
+import { IconEdit } from "@tabler/icons-react";
+import React from "react";
+import DeleteAlertModal from "./deleteAlertDep";
+import Image from "next/image";
+import nonePhoto from "@/public/logo.png"
 interface Oyun {
   id: number;
   created_at: string;
@@ -17,11 +25,11 @@ interface Oyun {
 function GameAddPageCard({
   data,
   deleteOnClick,
-  updateOnClick
+  updateOnClick,
 }: {
   data: Oyun[];
-  deleteOnClick: (id: number) => void; 
-  updateOnClick: (oyun: Oyun) => void; 
+  deleteOnClick: (id: number) => void;
+  updateOnClick: (oyun: Oyun) => void;
 }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -29,11 +37,17 @@ function GameAddPageCard({
         <Box key={oyun.id}>
           <Card>
             <div className="flex gap-3 items-center">
-              <Avatar
-                size="5"
-                src={oyun?.gorsel || undefined}
-                fallback="T"
-              />
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                
+                  <Image
+                    src={oyun.gorsel||nonePhoto}
+                    alt={oyun.oyun_adi}
+                    fill
+                    className="object-cover"
+                  />
+                
+              </div>
+
               <Box>
                 <Text as="div" size="2" weight="bold">
                   {oyun.oyun_adi}
@@ -47,16 +61,14 @@ function GameAddPageCard({
                     {oyun.cihaz_turu}
                   </Badge>
                   <Badge color="cyan">{oyun.kac_kisilik} Kişi</Badge>
-                  {oyun?.ea_playde_mi && (
-                    <Badge color="orange">EA</Badge>
-                  )}
+                  {oyun?.ea_playde_mi && <Badge color="orange">EA</Badge>}
                 </Flex>
               </Box>
-              
+
               <Flex className="flex gap-3 text-end ml-auto">
-                <IconButton 
-                  onClick={() => updateOnClick(oyun)} 
-                  size="1" 
+                <IconButton
+                  onClick={() => updateOnClick(oyun)}
+                  size="1"
                   variant="ghost"
                 >
                   <IconEdit width="18" height="18" />
