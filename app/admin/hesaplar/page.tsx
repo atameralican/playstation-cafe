@@ -2,13 +2,14 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {  evetHayir,} from "@/lib/adminPages";
+import { evetHayir } from "@/lib/adminPages";
 import React, { useState, useEffect } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { Button } from "@radix-ui/themes";
 import { DatePickerDep } from "@/components/ui/custom/datePickerDep";
+import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 
 interface Hesap {
   id: number;
@@ -35,12 +36,14 @@ export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
 
   const [gameList, setGameList] = useState<
-    Array<{ id: number; label: string }>
+    Array<{  label: string ;value: string }>
   >([]);
 
   const [data, setData] = useState<Partial<Hesap>>({
     mail: "",
     kullanici_adi: "",
+    mail_sifre: "",
+    ea_play_varmi: false,
     ea_play_alinma_tarihi: undefined,
     ea_play_bitis_tarihi: undefined,
     oyunlar: [],
@@ -62,7 +65,7 @@ export default function HesaplarPage() {
       },
     });
   };
-  // Oyunlar listesi gelecek. sadece id ve ismi geliyor. 
+  // Oyunlar listesi gelecek. sadece id ve ismi geliyor.
   const getOyunList = async () => {
     await serviseGit<Oyun[]>({
       url: "/api/oyunlar/minimal",
@@ -70,8 +73,8 @@ export default function HesaplarPage() {
         const typedData = data as Oyun[];
         setGameList(
           typedData.map((game) => ({
-            id: game.id,
             label: game.oyun_adi,
+            value: game.id.toString(),
           }))
         );
       },
@@ -82,7 +85,7 @@ export default function HesaplarPage() {
   };
 
   const hesapEkle = async () => {
-    if (!data.mail || !data.kullanici_adi) {
+    if (!data.mail || !data.kullanici_adi||!data.oyunlar || data.oyunlar.length === 0) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
     }
@@ -92,10 +95,13 @@ export default function HesaplarPage() {
       body: {
         mail: data.mail,
         kullanici_adi: data.kullanici_adi,
+        mail_sifre: data.mail_sifre || null,
+        ea_play_varmi: data.ea_play_varmi,
         ea_play_alinma_tarihi:
           data.ea_play_alinma_tarihi?.toISOString().split("T")[0] || null,
         ea_play_bitis_tarihi:
           data.ea_play_bitis_tarihi?.toISOString().split("T")[0] || null,
+        oyunlar: data.oyunlar,
       },
       onSuccess: () => {
         showToast("Hesap eklendi!", "success");
@@ -175,14 +181,6 @@ export default function HesaplarPage() {
         </div>
 
         <div className="lg:col-span-3 xl:col-span-2">
-          <Label htmlFor="oyunlar" className="mb-1">
-            Oyunlar
-          </Label>
-         
-        </div>
-        <div></div>
-
-        <div className="lg:col-span-3 xl:col-span-2">
           <Label htmlFor="eaplay" className="mb-1">
             EaPlay Var Mı?
           </Label>
@@ -225,7 +223,21 @@ export default function HesaplarPage() {
             placeholder="Tarih seçin"
           />
         </div>
-
+        <div className="lg:col-span-5 ">
+          <Label htmlFor="oyunlar" className="mb-1">
+            Oyunlar
+          </Label>
+          <TagBoxDep
+            options={gameList}
+            onValueChange={(value) => setData((prev) => ({
+                ...prev,
+                oyunlar: value.map(v => Number(v)),
+              }))}
+            placeholder="Oyun Seçiniz..."
+            className="w-full "
+            maxCount={4} 
+          />
+        </div>
         <div className="lg:col-span-2 xl:col-span-2 lg:self-end flex gap-y-2 gap-x-2 gap-2">
           <Button onClick={hesapEkle} color="blue" variant="surface">
             Ekle
