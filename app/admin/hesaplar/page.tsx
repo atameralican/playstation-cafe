@@ -44,7 +44,7 @@ interface Oyun {
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
-
+  const [formKey, setFormKey] = useState(0); // Formu sıfırlamak için key
   const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
     { field: "mail", headerName: "Mail Adresi", filter: true },
     { field: "kullanici_adi", headerName: "Kullanıcı Adı", filter: true },
@@ -90,6 +90,7 @@ const temizle=()=>{
     ea_play_bitis_tarihi: undefined,
     oyunlar: [],
   }))
+  setFormKey((prev) => prev + 1);
 }
 // selectbox sıfırlaması
   const getHesaplar = async () => {
@@ -272,6 +273,7 @@ const temizle=()=>{
             Oyunlar
           </Label>
           <TagBoxDep
+          key={formKey}
             options={gameList}
             onValueChange={(value) => setData((prev) => ({
               ...prev,
