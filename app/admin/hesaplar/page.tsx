@@ -50,6 +50,7 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
     { field: "ea_play_varmi" , filter: "agNumberColumnFilter"  },
     { field: "ea_play_alinma_tarihi" ,filter:"agDateColumnFilter"  },
     { field: "ea_play_bitis_tarihi"  ,filter:"agDateColumnFilter" },
+    { field: "oyunlar"  ,},
   ])
 
     const defaultColDef: ColDef = {
