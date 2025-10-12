@@ -16,14 +16,7 @@ import { AgGridReact } from "ag-grid-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-interface IRow {
-  mail: string;
-  kullanici_adi: string;
-  ea_play_varmi: boolean;
-  ea_play_alinma_tarihi: Date | null;
-  ea_play_bitis_tarihi: Date | null;
-  //oyunlar:object[];
-}
+
 
 
 interface Hesap {
@@ -49,9 +42,9 @@ interface Oyun {
 
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
-const [hesapList, setHesapList] = useState<IRow[]>([]);
+const [hesapList, setHesapList] = useState<Hesap[]>([]);
 
-   const [colDefs, setColDefs] = useState<ColDef<IRow>[]>([
+   const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
     { field: "mail"    },
     { field: "kullanici_adi" , },
     { field: "ea_play_varmi" , filter: "agNumberColumnFilter"  },
@@ -87,7 +80,7 @@ const [hesapList, setHesapList] = useState<IRow[]>([]);
       url: "/api/hesaplar",
       onSuccess: (data) => {
         console.log("data", data);
-        setHesapList(data);
+        setHesapList(data as Hesap[]);
       },
       onError: (error) => {
         showToast(`Hesaplar yüklenemedi: ${error.message}`, "error");
