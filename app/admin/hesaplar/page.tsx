@@ -98,9 +98,9 @@ export default function HesaplarPage() {
         mail_sifre: data.mail_sifre || null,
         ea_play_varmi: data.ea_play_varmi,
         ea_play_alinma_tarihi:
-          data.ea_play_alinma_tarihi?.toISOString().split("T")[0] || null,
+          data.ea_play_alinma_tarihi?.toLocaleDateString().split("T")[0] || null,
         ea_play_bitis_tarihi:
-          data.ea_play_bitis_tarihi?.toISOString().split("T")[0] || null,
+          data.ea_play_bitis_tarihi?.toLocaleDateString().split("T")[0] || null,
         oyunlar: data.oyunlar,
       },
       onSuccess: () => {
@@ -205,7 +205,8 @@ export default function HesaplarPage() {
           <DatePickerDep
             value={data.ea_play_alinma_tarihi}
             onValueChange={(date) =>
-              setData({ ...data, ea_play_alinma_tarihi: date })
+              {setData({ ...data, ea_play_alinma_tarihi: date })
+            }
             }
             placeholder="Tarih seçin"
           />
