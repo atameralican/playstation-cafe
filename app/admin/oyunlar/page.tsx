@@ -13,7 +13,7 @@ import SegmentedDep from "@/components/ui/segmentedDep";
 import { FileUpload } from "@/components/ui/admin-file-upload";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import GameAddPageCard from "@/components/ui/game-add-card";
-import { showAlert } from "@/components/ui/alertDep";
+import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { Button } from "@radix-ui/themes";
 
@@ -54,7 +54,7 @@ export default function OyunlarPage() {
         setOyunlar(data as Oyun[]);
       },
       onError: (error) => {
-        showAlert(`Oyunlar yüklenemedi: ${error.message}`, "error");
+        showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
       },
     });
   };
@@ -95,7 +95,7 @@ export default function OyunlarPage() {
 
   const oyunKaydet = async () => {
     if (!data.oyunAdi || !data.gameType) {
-      showAlert("Lütfen oyun adı ve kategori giriniz!", "error");
+      showToast("Lütfen oyun adı ve kategori giriniz!", "error");
       return;
     }
 
@@ -126,12 +126,12 @@ export default function OyunlarPage() {
         method: "PUT",
         body: { id: duzenlenenId, ...oyunData },
         onSuccess: () => {
-          showAlert("Oyun güncellendi!", "success");
+          showToast("Oyun güncellendi!", "success");
           formuTemizle();
           oyunlariYukle();
         },
         onError: (error) => {
-          showAlert(`Güncelleme hatası: ${error.message}`, "error");
+          showToast(`Güncelleme hatası: ${error.message}`, "error");
         },
       });
     } else {
@@ -141,12 +141,12 @@ export default function OyunlarPage() {
         method: "POST",
         body: oyunData,
         onSuccess: () => {
-          showAlert("Oyun eklendi!", "success");
+          showToast("Oyun eklendi!", "success");
           formuTemizle();
           oyunlariYukle();
         },
         onError: (error) => {
-          showAlert(`Ekleme hatası: ${error.message}`, "error");
+          showToast(`Ekleme hatası: ${error.message}`, "error");
         },
       });
     }
@@ -157,11 +157,11 @@ export default function OyunlarPage() {
       url: `/api/oyunlar?id=${id}`,
       method: "DELETE",
       onSuccess: () => {
-        showAlert("Oyun silme işlemi başarılı.", "success");
+        showToast("Oyun silme işlemi başarılı.", "success");
         oyunlariYukle();
       },
       onError: (error) => {
-        showAlert(`Silme hatası: ${error.message}`, "error");
+        showToast(`Silme hatası: ${error.message}`, "error");
       },
     });
   };
