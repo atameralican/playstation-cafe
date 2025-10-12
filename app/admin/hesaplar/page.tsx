@@ -25,10 +25,11 @@ interface Hesap {
   mail_sifre?: string | null; //
   kullanici_adi: string; //
   ea_play_varmi?: boolean | false; //
-  ea_play_alinma_tarihi?: Date | null; //
-  ea_play_bitis_tarihi?: Date | null; //
-  oyunlar?: number[] | null; //
-  is_deleted?: boolean | null; //
+  ea_play_alinma_tarihi?: Date | null;
+  ea_play_bitis_tarihi?: Date | null;
+  oyunlar?: number[] | null;
+  oyun_detaylari?: Array<{ id: number, oyun_adi: string } | null>;
+  is_deleted?: boolean | null;
   deleted_at?: string | null;
   deleted_by?: string | null;
   created_at?: string | null;
@@ -42,23 +43,28 @@ interface Oyun {
 
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
-const [hesapList, setHesapList] = useState<Hesap[]>([]);
+  const [hesapList, setHesapList] = useState<Hesap[]>([]);
 
-   const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
-    { field: "mail"    },
-    { field: "kullanici_adi" , },
-    { field: "ea_play_varmi" , filter: "agNumberColumnFilter"  },
-    { field: "ea_play_alinma_tarihi" ,filter:"agDateColumnFilter"  },
-    { field: "ea_play_bitis_tarihi"  ,filter:"agDateColumnFilter" },
-    { field: "oyunlar"  ,},
+  const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
+    { field: "mail", headerName: "Mail Adresi", filter: true },
+    { field: "kullanici_adi", headerName: "Kullanıcı Adı", filter: true },
+    { field: "ea_play_varmi", filter: "agNumberColumnFilter", headerName: "EAPlay" },
+    { field: "ea_play_alinma_tarihi", filter: "agDateColumnFilter", headerName: "EAPlay Alınma T." },
+    { field: "ea_play_bitis_tarihi", filter: "agDateColumnFilter", headerName: "EAPlay Bitiş T." },
+    {
+      field: "oyun_detaylari", headerName: "Oyunlar", filter: true,
+      valueFormatter: (params) => {
+        return params.value?.map((oyun: any) => oyun.oyun_adi).join(", ") || "";
+      }
+    },
   ])
 
-    const defaultColDef: ColDef = {
+  const defaultColDef: ColDef = {
     flex: 1,
   };
 
   const [gameList, setGameList] = useState<
-    Array<{  label: string ;value: string }>
+    Array<{ label: string; value: string }>
   >([]);
 
   const [data, setData] = useState<Partial<Hesap>>({
@@ -75,7 +81,17 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
     getHesaplar();
     getOyunList();
   }, []);
-
+const temizle=()=>{
+  setData(prev=>({...prev,
+    mail: "",
+    kullanici_adi: "",
+    mail_sifre: "",
+    ea_play_alinma_tarihi: undefined,
+    ea_play_bitis_tarihi: undefined,
+    oyunlar: [],
+  }))
+}
+// selectbox sıfırlaması
   const getHesaplar = async () => {
     await serviseGit<Hesap[]>({
       url: "/api/hesaplar",
@@ -108,7 +124,7 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
   };
 
   const hesapEkle = async () => {
-    if (!data.mail || !data.kullanici_adi||!data.oyunlar || data.oyunlar.length === 0) {
+    if (!data.mail || !data.kullanici_adi || !data.oyunlar || data.oyunlar.length === 0) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
     }
@@ -128,6 +144,8 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
       },
       onSuccess: () => {
         showToast("Hesap eklendi!", "success");
+        temizle();
+        getHesaplar();
       },
       onError: (error) => {
         showToast(`Ekleme hatası: ${error.message}`, "error");
@@ -227,8 +245,9 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
           </Label>
           <DatePickerDep
             value={data.ea_play_alinma_tarihi}
-            onValueChange={(date) =>
-              {setData({ ...data, ea_play_alinma_tarihi: date })
+            disabled={!data.ea_play_varmi}
+            onValueChange={(date) => {
+              setData({ ...data, ea_play_alinma_tarihi: date })
             }
             }
             placeholder="Tarih seçin"
@@ -241,6 +260,7 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
           </Label>
           <DatePickerDep
             value={data.ea_play_bitis_tarihi}
+            disabled={!data.ea_play_varmi}
             onValueChange={(date) =>
               setData({ ...data, ea_play_bitis_tarihi: date })
             }
@@ -254,12 +274,13 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
           <TagBoxDep
             options={gameList}
             onValueChange={(value) => setData((prev) => ({
-                ...prev,
-                oyunlar: value.map(v => Number(v)),
-              }))}
+              ...prev,
+              oyunlar: value.map(v => Number(v)),
+            }))}
             placeholder="Oyun Seçiniz..."
             className="w-full "
-            maxCount={4} 
+            value={data.oyunlar?.map(String) || []}
+            maxCount={4}
           />
         </div>
         <div className="lg:col-span-2 xl:col-span-2 lg:self-end flex gap-y-2 gap-x-2 gap-2">
@@ -271,13 +292,13 @@ const [hesapList, setHesapList] = useState<Hesap[]>([]);
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">PSN Hesapları Listesi</h3>
-       <div style={{ width: "100%", height: "500px" }}>
-      <AgGridReact
-        rowData={hesapList}
-        columnDefs={colDefs}
-        defaultColDef={defaultColDef}
-      />
-    </div>
+      <div style={{ width: "100%", height: "500px" }}>
+        <AgGridReact
+          rowData={hesapList}
+          columnDefs={colDefs}
+          defaultColDef={defaultColDef}
+        />
+      </div>
     </div>
   );
 }

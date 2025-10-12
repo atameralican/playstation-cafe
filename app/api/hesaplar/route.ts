@@ -2,20 +2,60 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { showToast } from "@/components/ui/alertDep";
 
-// GET - Hesaplar listele
+// GET - Hesaplar listele (oyun detayları ile)
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    // Önce hesapları çek
+    const { data: hesaplar, error: hesapError } = await supabase
       .from("hesaplar")
       .select("*")
       .order("mail", { ascending: false });
 
-    if (error) throw error;
-    return NextResponse.json(data);
+    if (hesapError) throw hesapError;
+
+    // Eğer hesap yoksa boş array döndür
+    if (!hesaplar || hesaplar.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Tüm oyun ID'lerini topla
+    const tumOyunIdleri = Array.from(
+      new Set(
+        hesaplar
+          .flatMap((hesap) => hesap.oyunlar || [])
+          .filter((id) => id != null)
+      )
+    );
+
+    // Oyunları bir seferde çek
+    const { data: oyunlar, error: oyunError } = await supabase
+      .from("oyunlar")
+      .select("id, oyun_adi")
+      .in("id", tumOyunIdleri);
+
+    if (oyunError) throw oyunError;
+
+    // Oyun ID -> Oyun Adı mapping oluştur
+    const oyunMap = new Map(
+      oyunlar?.map((oyun) => [oyun.id, oyun.oyun_adi]) || []
+    );
+
+    // Hesaplara oyun detaylarını ekle
+    const enrichedHesaplar = hesaplar.map((hesap) => ({
+      ...hesap,
+      oyun_detaylari:
+        hesap.oyunlar?.map((oyunId: number) => ({
+          id: oyunId,
+          oyun_adi: oyunMap.get(oyunId) || "Bilinmeyen Oyun",
+        })) || [],
+    }));
+
+    return NextResponse.json(enrichedHesaplar);
   } catch (error) {
-    showToast("Hesaplar getirilemedi:" + error, "error");
+    console.error("Hesaplar getirilemedi:", error);
+    showToast (`Hesaplar getirilemedi: ${error}`, "error");
     return NextResponse.json(
-      { error: "Hesaplar getirilemedi 500" },
+      { error: "Hesaplar getirilemedi", details: error },
       { status: 500 }
     );
   }
@@ -46,7 +86,8 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    showToast("Hesap ekleme hatası:" + error, "error");
+    console.error("Hesap ekleme hatası:", error);
+    showToast (`Ekleme hatası: ${error}`, "error");
     return NextResponse.json(
       {
         error: "Hesap eklenemedi",
