@@ -10,6 +10,21 @@ import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { Button } from "@radix-ui/themes";
 import { DatePickerDep } from "@/components/ui/custom/datePickerDep";
 import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
+import type { ColDef } from "ag-grid-community";
+import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
+
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+interface IRow {
+  mail: string;
+  kullanici_adi: string;
+  ea_play_varmi: boolean;
+  ea_play_alinma_tarihi: Date | null;
+  ea_play_bitis_tarihi: Date | null;
+  //oyunlar:object[];
+}
+
 
 interface Hesap {
   id: number;
@@ -34,6 +49,19 @@ interface Oyun {
 
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
+const [hesapList, setHesapList] = useState<IRow[]>([]);
+
+   const [colDefs, setColDefs] = useState<ColDef<IRow>[]>([
+    { field: "mail"    },
+    { field: "kullanici_adi" , },
+    { field: "ea_play_varmi" , filter: "agNumberColumnFilter"  },
+    { field: "ea_play_alinma_tarihi" ,filter:"agDateColumnFilter"  },
+    { field: "ea_play_bitis_tarihi"  ,filter:"agDateColumnFilter" },
+  ])
+
+    const defaultColDef: ColDef = {
+    flex: 1,
+  };
 
   const [gameList, setGameList] = useState<
     Array<{  label: string ;value: string }>
@@ -59,6 +87,7 @@ export default function HesaplarPage() {
       url: "/api/hesaplar",
       onSuccess: (data) => {
         console.log("data", data);
+        setHesapList(data);
       },
       onError: (error) => {
         showToast(`Hesaplar yüklenemedi: ${error.message}`, "error");
@@ -246,7 +275,15 @@ export default function HesaplarPage() {
         </div>
       </div>
 
-      <hr className="my-8" />
+      <hr className="my-8 w-full" />
+      <h3 className="font-bold">PSN Hesapları Listesi</h3>
+       <div style={{ width: "100%", height: "500px" }}>
+      <AgGridReact
+        rowData={hesapList}
+        columnDefs={colDefs}
+        defaultColDef={defaultColDef}
+      />
+    </div>
     </div>
   );
 }
