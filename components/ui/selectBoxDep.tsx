@@ -33,6 +33,7 @@ interface SelectBoxDepProps<T = OptionType> {
   labelKey?: keyof T;
 }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectBoxDep = <T extends Record<string, any> = OptionType>({
   data,
   value,
