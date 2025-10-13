@@ -191,7 +191,7 @@ export default function PlaystationlarPage() {
   const colDefs: ColDef<Cihaz>[] = [
     { field: "cihaz_turu", headerName: "Cihaz Türü", filter: true },
     { field: "kasa_tipi", headerName: "Kasa Tipi", filter: true },
-    { field: "seri_no", headerName: "Seri No", filter: false },
+    { field: "seri_no", headerName: "Seri No", filter: false ,width: 250,},
     {
       minWidth: 250,
       field: "acilis_hesabi",
