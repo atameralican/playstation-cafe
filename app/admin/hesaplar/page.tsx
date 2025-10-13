@@ -21,10 +21,10 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface Hesap {
   id: number;
-  mail: string; //
-  mail_sifre?: string | null; //
-  kullanici_adi: string; //
-  ea_play_varmi?: boolean | false; //
+  mail: string; 
+  mail_sifre?: string | null; 
+  kullanici_adi: string; 
+  ea_play_varmi?: boolean | false; 
   ea_play_alinma_tarihi?: Date | null;
   ea_play_bitis_tarihi?: Date | null;
   oyunlar?: number[] | null;
@@ -45,7 +45,19 @@ export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
   const [formKey, setFormKey] = useState(0); // tagbox içini boşaltabilmek için
-
+   const [gameList, setGameList] = useState<
+    Array<{ label: string; value: string }>
+  >([]);
+  const [data, setData] = useState<Partial<Hesap>>({
+    mail: "",
+    kullanici_adi: "",
+    mail_sifre: "",
+    ea_play_varmi: false,
+    ea_play_alinma_tarihi: undefined,
+    ea_play_bitis_tarihi: undefined,
+    oyunlar: [],
+  });
+  
   // sayfa açılır açılmaz veriler gelsin
     useEffect(() => {
     getHesaplar();
@@ -83,22 +95,9 @@ export default function HesaplarPage() {
     flex: 1,
   };
 
-  const [gameList, setGameList] = useState<
-    Array<{ label: string; value: string }>
-  >([]);
+ 
   
 // ========== SERVICE ==============
-  const [data, setData] = useState<Partial<Hesap>>({
-    mail: "",
-    kullanici_adi: "",
-    mail_sifre: "",
-    ea_play_varmi: false,
-    ea_play_alinma_tarihi: undefined,
-    ea_play_bitis_tarihi: undefined,
-    oyunlar: [],
-  });
-
-
 
 // Hesapları getirme
   const getHesaplar = async () => {

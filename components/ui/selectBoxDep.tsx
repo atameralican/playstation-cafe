@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,22 +23,34 @@ type OptionType = {
   label: string;
 };
 
-interface SelectBoxDepProps {
-  data: OptionType[];
+interface SelectBoxDepProps<T = OptionType> {
+  data: T[];
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
   noDataText?: string;
+  valueKey?: keyof T;
+  labelKey?: keyof T;
 }
 
-const SelectBoxDep: React.FC<SelectBoxDepProps> = ({
+const SelectBoxDep = <T extends Record<string, any> = OptionType>({
   data,
   value,
   onValueChange,
   placeholder = "Seçiniz",
   noDataText = "Kayıt bulunamadı",
-}) => {
+  valueKey = "value" as keyof T,
+  labelKey = "label" as keyof T,
+}: SelectBoxDepProps<T>) => {
   const [open, setOpen] = useState(false);
+
+  // Data'yı normalize et
+  const normalizedData = useMemo(() => {
+    return data.map((item) => ({
+      value: String(item[valueKey]),
+      label: String(item[labelKey]),
+    }));
+  }, [data, valueKey, labelKey]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -49,7 +61,9 @@ const SelectBoxDep: React.FC<SelectBoxDepProps> = ({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value ? data.find((e) => e.value === value)?.label : placeholder}
+          {value
+            ? normalizedData.find((e) => e.value === value)?.label
+            : placeholder}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -59,7 +73,7 @@ const SelectBoxDep: React.FC<SelectBoxDepProps> = ({
           <CommandList>
             <CommandEmpty>{noDataText}</CommandEmpty>
             <CommandGroup>
-              {data.map((e) => (
+              {normalizedData.map((e) => (
                 <CommandItem
                   key={e.value}
                   value={e.value}
