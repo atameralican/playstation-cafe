@@ -64,7 +64,7 @@ export default function HesaplarPage() {
   setFormKey((prev) => prev + 1);
 }
   // ========== DATAGRID ==============
-  const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
+  const colDefs: ColDef<Hesap>[] = [
     { field: "mail", headerName: "Mail Adresi", filter: true },
     { field: "kullanici_adi", headerName: "Kullanıcı Adı", filter: true },
     { field: "ea_play_varmi", filter: "agNumberColumnFilter", headerName: "EAPlay" },
@@ -76,7 +76,7 @@ export default function HesaplarPage() {
         return params.value?.map((oyun: any) => oyun.oyun_adi).join(", ") || "";
       }
     },
-  ])
+  ]
 
   const defaultColDef: ColDef = {
     flex: 1,
