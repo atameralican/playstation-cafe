@@ -73,7 +73,8 @@ export default function HesaplarPage() {
     {
       field: "oyun_detaylari", headerName: "Oyunlar", filter: true,
       valueFormatter: (params) => {
-        return params.value?.map((oyun: any) => oyun.oyun_adi).join(", ") || "";
+        const oyunlar = params.value as Array<{ id: number; oyun_adi: string }> | undefined;
+        return oyunlar?.map(oyun => oyun.oyun_adi).join(", ") || "";
       }
     },
   ]
