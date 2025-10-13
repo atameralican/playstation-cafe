@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
           kasa_tipi: body.kasa_tipi|| null,
           aciklama: body.aciklama|| null,
           cihaz_fotograf: body.cihaz_fotograf|| null,
-         /////////// eğer hata yoksa baska bi klasmöre açı soft delete işlemini yap bu ve hesaplar için 
         },
       ])
       .select()
