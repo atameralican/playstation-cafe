@@ -18,33 +18,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-interface SelectBoxDepProps<
-  T extends { [key: string]: string | number | boolean | null | undefined }
-> {
-  data: T[];
+type OptionType = {
+  value: string;
+  label: string;
+};
+
+interface SelectBoxDepProps {
+  data: OptionType[];
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
   noDataText?: string;
-  valueKey?: keyof T;
-  labelKey?: keyof T;
 }
 
-const SelectBoxDep = <
-  T extends { [key: string]: string | number | boolean | null | undefined }
->({
+const SelectBoxDep: React.FC<SelectBoxDepProps> = ({
   data,
   value,
   onValueChange,
   placeholder = "Seçiniz",
   noDataText = "Kayıt bulunamadı",
-  valueKey = "value",
-  labelKey = "label",
-}: SelectBoxDepProps<T>) => {
+}) => {
   const [open, setOpen] = useState(false);
-
-  const getValue = (item: T) => String(item[valueKey] ?? "");
-  const getLabel = (item: T) => String(item[labelKey] ?? "");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,9 +49,7 @@ const SelectBoxDep = <
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value
-            ? getLabel(data.find((e) => getValue(e) === value) as T)
-            : placeholder}
+          {value ? data.find((e) => e.value === value)?.label : placeholder}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -67,21 +59,21 @@ const SelectBoxDep = <
           <CommandList>
             <CommandEmpty>{noDataText}</CommandEmpty>
             <CommandGroup>
-              {data.map((e, i) => (
+              {data.map((e) => (
                 <CommandItem
-                  key={i}
-                  value={getValue(e)}
+                  key={e.value}
+                  value={e.value}
                   onSelect={(currentValue) => {
                     const newValue = currentValue === value ? "" : currentValue;
                     onValueChange(newValue);
                     setOpen(false);
                   }}
                 >
-                  {getLabel(e)}
+                  {e.label}
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === getValue(e) ? "opacity-100" : "opacity-0"
+                      value === e.value ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

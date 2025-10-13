@@ -21,6 +21,7 @@ import { Button } from "@radix-ui/themes";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { set } from "date-fns";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -44,6 +45,8 @@ interface Hesap {
   id: number;
   mail: string;
 kullanici_adi: string;
+value?: string;
+label?: string;
 }
 
 export default function PlaystationlarPage() {
@@ -55,7 +58,7 @@ export default function PlaystationlarPage() {
   const { serviseGit } = useServiceHook();
     const [resetFileUpload, setResetFileUpload] = useState(false);
   const [cihazList, setCihazList] = useState<Cihaz[]>([]);
-  const [hesapList, setHesapList] = useState<Hesap[]>([]);
+const [hesapList, setHesapList] = useState<{ label: string; value: string }[]>([]);
   const [data, setData] = useState<Partial<Cihaz>>({
     cihaz_turu: "PS4",
     seri_no: "",
@@ -75,6 +78,7 @@ export default function PlaystationlarPage() {
 const temizle=()=>{
   setData({
     seri_no: "",
+    cihaz_turu: "PS4",
     acilis_hesabi: "",
     ikinci_hesap: "",
     kol_iki_mail: "",
@@ -123,9 +127,11 @@ const temizle=()=>{
       method: "GET",
           url: "/api/hesaplar/minimal",
           onSuccess: (data) => {
-            console.log("/api/hesaplar/minimal:", data);
-            setHesapList(data as Hesap[]);
-          },
+    setHesapList(data.map((hesap) => ({
+      label: `${hesap.mail} - (${hesap.kullanici_adi})`,
+      value: hesap.mail,
+    })))
+  },
           onError: (error) => {
             console.log("/api/hesaplar/minimal: ",error.message)
             showToast(`Hesap Listesi Yüklenemedi:  ${error.message}`, "error");
@@ -172,7 +178,34 @@ const temizle=()=>{
     { field: "ikinci_hesap",  headerName: "Ekür Hesap" , filter: true },
     { field: "kol_iki_mail", headerName: "Kol İki Mail" },
     { field: "aciklama", headerName: "Açıklama" }, 
-  ]
+    {
+    headerName: "İşlemler",
+    cellRenderer: (params: unknown) => {
+      return (
+        <div className="flex gap-2 items-center h-full">
+          <Button
+            size="1"
+            variant="soft"
+            color="blue"
+           // onClick={() => handleDuzenle(params.data)}
+          >
+            Düzenle
+          </Button>
+          <Button
+            size="1"
+            variant="soft"
+            color="red"
+            //onClick={() => handleSil(params.data.id)}
+          >
+            Sil
+          </Button>
+        </div>
+      );
+    },
+    //width: 180,
+    //pinned: "right",
+  },
+];
 
   const defaultColDef: ColDef = {
     flex: 1,
@@ -249,8 +282,6 @@ const temizle=()=>{
           <SelectBoxDep
             data={hesapList}
             value={data.acilis_hesabi || ""}
-            labelKey="mail"
-            valueKey="mail"
             placeholder="Seçiniz"
           onValueChange={(e) =>
             setData((prev) => ({
@@ -267,8 +298,6 @@ const temizle=()=>{
           <SelectBoxDep
             data={hesapList}
             value={data?.ikinci_hesap || ""}
-            labelKey="mail"
-            valueKey="mail"
             placeholder="Seçiniz"
           onValueChange={(e) =>
             setData((prev) => ({
@@ -333,7 +362,7 @@ const temizle=()=>{
       </div>
 
       <hr className="my-8 w-full" />
-            <h3 className="font-bold">PSN Hesapları Listesi</h3>
+            <h3 className="font-bold">Playstation (Cihaz) Listesi</h3>
             <div style={{ width: "100%", height: "500px" }} className="pb-5">
               <AgGridReact
                 rowData={cihazList}

@@ -3,12 +3,12 @@
 
 import { useState, useCallback } from "react";
 
-interface ServiseGitOptions {
+interface ServiseGitOptions<T> {
   url: string;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: Record<string, unknown>;
   headers?: HeadersInit;
-  onSuccess?: (data: unknown) => void;
+  onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   showLoading?: boolean;
   loadingText?: string;
@@ -44,7 +44,7 @@ export const useServiceHook = () => {
   };
 
   const serviseGit = useCallback(
-    async <T = unknown,>(options: ServiseGitOptions): Promise<T | null> => {
+  async <T = unknown,>(options: ServiseGitOptions<T>): Promise<T | null> => {
       const {
         url,
         method = "GET",
