@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-type OptionType = {
-  value: string;
-  label: string;
-};
-
-interface SelectBoxDepProps<T = OptionType> {
+interface SelectBoxDepProps<
+  T extends { [key: string]: string | number | boolean | null | undefined }
+> {
   data: T[];
   value: string;
   onValueChange: (value: string) => void;
@@ -33,25 +30,21 @@ interface SelectBoxDepProps<T = OptionType> {
   labelKey?: keyof T;
 }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SelectBoxDep = <T extends Record<string, any> = OptionType>({
+const SelectBoxDep = <
+  T extends { [key: string]: string | number | boolean | null | undefined }
+>({
   data,
   value,
   onValueChange,
   placeholder = "Seçiniz",
   noDataText = "Kayıt bulunamadı",
-  valueKey = "value" as keyof T,
-  labelKey = "label" as keyof T,
+  valueKey = "value",
+  labelKey = "label",
 }: SelectBoxDepProps<T>) => {
   const [open, setOpen] = useState(false);
 
-  // Data'yı normalize et
-  const normalizedData = useMemo(() => {
-    return data.map((item) => ({
-      value: String(item[valueKey]),
-      label: String(item[labelKey]),
-    }));
-  }, [data, valueKey, labelKey]);
+  const getValue = (item: T) => String(item[valueKey] ?? "");
+  const getLabel = (item: T) => String(item[labelKey] ?? "");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -63,7 +56,7 @@ const SelectBoxDep = <T extends Record<string, any> = OptionType>({
           className="w-full justify-between"
         >
           {value
-            ? normalizedData.find((e) => e.value === value)?.label
+            ? getLabel(data.find((e) => getValue(e) === value) as T)
             : placeholder}
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -74,21 +67,21 @@ const SelectBoxDep = <T extends Record<string, any> = OptionType>({
           <CommandList>
             <CommandEmpty>{noDataText}</CommandEmpty>
             <CommandGroup>
-              {normalizedData.map((e) => (
+              {data.map((e, i) => (
                 <CommandItem
-                  key={e.value}
-                  value={e.value}
+                  key={i}
+                  value={getValue(e)}
                   onSelect={(currentValue) => {
                     const newValue = currentValue === value ? "" : currentValue;
                     onValueChange(newValue);
                     setOpen(false);
                   }}
                 >
-                  {e.label}
+                  {getLabel(e)}
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === e.value ? "opacity-100" : "opacity-0"
+                      value === getValue(e) ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
