@@ -44,7 +44,26 @@ interface Oyun {
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
-  const [formKey, setFormKey] = useState(0); // Formu sıfırlamak için key
+  const [formKey, setFormKey] = useState(0); // tagbox içini boşaltabilmek için
+
+  // sayfa açılır açılmaz veriler gelsin
+    useEffect(() => {
+    getHesaplar();
+    getOyunList();
+  }, []);
+
+  const temizle=()=>{
+  setData(prev=>({...prev,
+    mail: "",
+    kullanici_adi: "",
+    mail_sifre: "",
+    ea_play_alinma_tarihi: undefined,
+    ea_play_bitis_tarihi: undefined,
+    oyunlar: [],
+  }))
+  setFormKey((prev) => prev + 1);
+}
+  // ========== DATAGRID ==============
   const [colDefs, setColDefs] = useState<ColDef<Hesap>[]>([
     { field: "mail", headerName: "Mail Adresi", filter: true },
     { field: "kullanici_adi", headerName: "Kullanıcı Adı", filter: true },
@@ -66,7 +85,8 @@ export default function HesaplarPage() {
   const [gameList, setGameList] = useState<
     Array<{ label: string; value: string }>
   >([]);
-
+  
+// ========== SERVICE ==============
   const [data, setData] = useState<Partial<Hesap>>({
     mail: "",
     kullanici_adi: "",
@@ -77,22 +97,9 @@ export default function HesaplarPage() {
     oyunlar: [],
   });
 
-  useEffect(() => {
-    getHesaplar();
-    getOyunList();
-  }, []);
-const temizle=()=>{
-  setData(prev=>({...prev,
-    mail: "",
-    kullanici_adi: "",
-    mail_sifre: "",
-    ea_play_alinma_tarihi: undefined,
-    ea_play_bitis_tarihi: undefined,
-    oyunlar: [],
-  }))
-  setFormKey((prev) => prev + 1);
-}
-// selectbox sıfırlaması
+
+
+// Hesapları getirme
   const getHesaplar = async () => {
     await serviseGit<Hesap[]>({
       url: "/api/hesaplar",
@@ -105,6 +112,7 @@ const temizle=()=>{
       },
     });
   };
+
   // Oyunlar listesi gelecek. sadece id ve ismi geliyor.
   const getOyunList = async () => {
     await serviseGit<Oyun[]>({
@@ -124,6 +132,7 @@ const temizle=()=>{
     });
   };
 
+  // Yeni hesap ekleme
   const hesapEkle = async () => {
     if (!data.mail || !data.kullanici_adi || !data.oyunlar || data.oyunlar.length === 0) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
@@ -294,7 +303,7 @@ const temizle=()=>{
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">PSN Hesapları Listesi</h3>
-      <div style={{ width: "100%", height: "500px" }}>
+      <div style={{ width: "100%", height: "500px" }} className="pb-5">
         <AgGridReact
           rowData={hesapList}
           columnDefs={colDefs}

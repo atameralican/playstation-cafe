@@ -1064,7 +1064,7 @@ export const TagBoxDep = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         selectedValues.length ===
                         getAllOptions().filter((opt) => !opt.disabled).length
                       }
-                      aria-label={`Select all ${
+                      aria-label={`Tümünü Seç${
                         getAllOptions().length
                       } options`}
                       className="cursor-pointer"
@@ -1083,7 +1083,7 @@ export const TagBoxDep = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         <CheckIcon className="h-4 w-4" />
                       </div>
                       <span>
-                        (Select All
+                        (Tümünü Seç
                         {getAllOptions().length > 20
                           ? ` - ${getAllOptions().length} options`
                           : ""}
@@ -1190,7 +1190,7 @@ export const TagBoxDep = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                           onSelect={handleClear}
                           className="flex-1 justify-center cursor-pointer"
                         >
-                          Clear
+                          Temizle
                         </CommandItem>
                         <Separator
                           orientation="vertical"
@@ -1202,7 +1202,7 @@ export const TagBoxDep = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                       onSelect={() => setIsPopoverOpen(false)}
                       className="flex-1 justify-center cursor-pointer max-w-full"
                     >
-                      Close
+                      Kapat
                     </CommandItem>
                   </div>
                 </CommandGroup>
