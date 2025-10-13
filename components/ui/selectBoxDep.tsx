@@ -33,7 +33,7 @@ interface SelectBoxDepProps<T = OptionType> {
   labelKey?: keyof T;
 }
 
-const SelectBoxDep = <T extends Record<string, unknown> = OptionType>({
+const SelectBoxDep = <T extends Record<string, any> = OptionType>({
   data,
   value,
   onValueChange,
