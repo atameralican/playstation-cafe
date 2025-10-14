@@ -17,14 +17,14 @@ import logo from "@/public/logo.png"
 
 export function SidebarAdmin({ children }: { children: React.ReactNode }) {
   const links = [
-    {
-      label: "Playstationlar",
-      href: "/admin/playstationlar",
+        {
+      label: "Oyunlar",
+      href: "/admin/oyunlar",
       icon: (
-        <IconDeviceGamepad2 className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+        <IconPacman className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
-    {
+       {
       label: "PSN Hesapları",
       href: "/admin/hesaplar",
       icon: (
@@ -32,12 +32,14 @@ export function SidebarAdmin({ children }: { children: React.ReactNode }) {
       ),
     },
     {
-      label: "Oyunlar",
-      href: "/admin/oyunlar",
+      label: "Playstationlar",
+      href: "/admin/playstationlar",
       icon: (
-        <IconPacman className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+        <IconDeviceGamepad2 className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
+ 
+
     {
       label: "Televizyonlar",
       href: "/admin/televizyonlar",

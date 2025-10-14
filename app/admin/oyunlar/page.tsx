@@ -306,16 +306,15 @@ export default function OyunlarPage() {
 
         <div className=" md:col-span-4 lg:col-span-3 xl:col-span-4  content-end">
           <div className="lg:self-end flex gap-y-2 gap-x-2 gap-2">
-<Button onClick={oyunKaydet} variant="outline">
-            {duzenlenenId ? "Güncelle" : "Ekle"}
-          </Button>
-          {duzenlenenId && (
-            <Button onClick={formuTemizle} variant="destructive">
-              İptal Et
+            <Button onClick={oyunKaydet} variant="outline">
+              {duzenlenenId ? "Güncelle" : "Ekle"}
             </Button>
-          )}
+            {duzenlenenId && (
+              <Button onClick={formuTemizle} variant="destructive">
+                İptal Et
+              </Button>
+            )}
           </div>
-          
         </div>
       </div>
 
