@@ -8,14 +8,18 @@ import {
   evetHayir,
   oyunTurleri,
 } from "@/lib/adminPages";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
-import { FileUpload } from "@/components/ui/admin-file-upload";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import GameAddPageCard from "@/components/ui/game-add-card";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
-import { Button } from "@radix-ui/themes";
+import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 interface Oyun {
   id: number;
@@ -35,12 +39,11 @@ export default function OyunlarPage() {
     person: "2",
     gameType: "",
     eaMi: "1",
+    gorsel: "",
   });
-  const [files, setFiles] = useState<File[]>([]);
   const [oyunlar, setOyunlar] = useState<Oyun[]>([]);
   const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
-  const [mevcutGorsel, setMevcutGorsel] = useState<string | null>(null);
-  const [resetFileUpload, setResetFileUpload] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { serviseGit } = useServiceHook();
 
   useEffect(() => {
@@ -59,8 +62,17 @@ export default function OyunlarPage() {
     });
   };
 
-  const handleFileUpload = (files: File[]) => {
-    setFiles(files);
+  const handleFileUpload = async (files: File[]) => {
+    let gorselUrl = data?.gorsel;
+
+    if (files.length > 0) {
+      const reader = new FileReader();
+      gorselUrl = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(files[0]);
+      });
+      setData((prev) => ({ ...prev, gorsel: gorselUrl }));
+    }
   };
 
   const formuTemizle = () => {
@@ -70,13 +82,13 @@ export default function OyunlarPage() {
       psType: "2",
       person: "2",
       eaMi: "1",
+      gorsel: "",
     });
 
     setDuzenlenenId(null);
-    setMevcutGorsel(null);
-    setFiles([]);
-    setResetFileUpload(true);
-    setTimeout(() => setResetFileUpload(false), 100);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const oyunDuzenle = (oyun: Oyun) => {
@@ -87,8 +99,8 @@ export default function OyunlarPage() {
       psType: oyun.cihaz_turu === "ps3" ? "1" : "2",
       person: oyun.kac_kisilik.toString(),
       eaMi: oyun.ea_playde_mi ? "1" : "2",
+      gorsel: oyun.gorsel || "",
     });
-    setMevcutGorsel(oyun.gorsel);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -99,24 +111,13 @@ export default function OyunlarPage() {
       return;
     }
 
-    // Yeni görsel varsa base64'e çevir, yoksa mevcut görseli kullan
-    let gorselUrl = mevcutGorsel;
-
-    if (files.length > 0) {
-      const reader = new FileReader();
-      gorselUrl = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(files[0]);
-      });
-    }
-
     const oyunData = {
       oyunAdi: data?.oyunAdi,
       cihazTuru: data.psType === "1" ? "ps3" : "ps4-ps5",
       kacKisilik: data.person,
       kategori: data.gameType,
       eaPlaydeMi: data.eaMi,
-      gorselUrl,
+      gorselUrl: data.gorsel,
     };
 
     if (duzenlenenId) {
@@ -177,11 +178,10 @@ export default function OyunlarPage() {
             Yeni oyun ekle veya mevcut oyunları düzenle.
           </p>
         </div>
-       
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
-        <div className="lg:col-span-5 xl:col-span-4">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-6">
+        <div className=" md:col-span-6 lg:col-span-4">
           <Label htmlFor="oyunAdi" className="mb-1">
             Oyun Adı
           </Label>
@@ -199,7 +199,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className=" md:col-span-6 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="kategori" className="mb-1">
             Oyun Kategorisi
           </Label>
@@ -216,7 +216,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="cihaz" className="mb-1">
             Cihaz Türü
           </Label>
@@ -234,64 +234,88 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className="lg:col-span-6 xl:col-span-3 grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="kisi" className="mb-1">
-              Kaç Kişilik
-            </Label>
-            <SegmentedDep
-              data={kisiSayisi}
-              value={data?.person}
-              onValueChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  person: e,
-                }))
-              }
-              radius="full"
-              size="2"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="ea" className="mb-1">
-              EA Playde Mi
-            </Label>
-            <SegmentedDep
-              data={evetHayir}
-              value={data.eaMi}
-              onValueChange={(e) =>
-                setData((prev) => ({
-                  ...prev,
-                  eaMi: e,
-                }))
-              }
-              radius="full"
-              size="2"
-            />
-          </div>
-        </div>
-
-        <div className="lg:col-span-2 xl:col-span-2">
-          <Label htmlFor="ea" className="mb-1">
-            Oyun Görseli
+        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-2">
+          <Label htmlFor="kisi" className="mb-1">
+            Kaç Kişilik
           </Label>
-          <FileUpload
-            single
-            onChange={handleFileUpload}
-            reset={resetFileUpload}
+          <SegmentedDep
+            data={kisiSayisi}
+            value={data?.person}
+            onValueChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                person: e,
+              }))
+            }
+            radius="full"
+            size="2"
           />
         </div>
 
-        <div className="lg:col-span-2 xl:col-span-2 lg:self-end flex gap-y-2 gap-x-2 gap-2">
-          <Button onClick={oyunKaydet} color="blue" variant="surface">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
+          <Label htmlFor="ea" className="mb-1">
+            EA Playde Mi
+          </Label>
+          <SegmentedDep
+            data={evetHayir}
+            value={data.eaMi}
+            onValueChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                eaMi: e,
+              }))
+            }
+            radius="full"
+            size="2"
+          />
+        </div>
+
+        <div className=" md:col-span-6 lg:col-span-4">
+          <Label htmlFor="picture" className="mb-1">
+            Cihaz Fotoğrafı
+          </Label>
+          <div className="flex items-center gap-2">
+            <Input
+              ref={fileInputRef}
+              id="gorsel"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                handleFileUpload(files);
+              }}
+            />
+            {data.gorsel && (
+              <HoverCard>
+                <HoverCardTrigger>
+                  <Button variant="ghost" size="icon">
+                    👁️
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="p-2 w-auto">
+                  <img
+                    src={data.gorsel}
+                    alt="Önizleme"
+                    className="w-40 h-40 object-cover rounded"
+                  />
+                </HoverCardContent>
+              </HoverCard>
+            )}
+          </div>
+        </div>
+
+        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-4  content-end">
+          <div className="lg:self-end flex gap-y-2 gap-x-2 gap-2">
+<Button onClick={oyunKaydet} variant="outline">
             {duzenlenenId ? "Güncelle" : "Ekle"}
           </Button>
           {duzenlenenId && (
-            <Button onClick={formuTemizle} color="red" variant="surface">
+            <Button onClick={formuTemizle} variant="destructive">
               İptal Et
             </Button>
           )}
+          </div>
+          
         </div>
       </div>
 

@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
-import { Button } from "@radix-ui/themes";
+import { Button } from "@/components/ui/button";
 import { DatePickerDep } from "@/components/ui/custom/datePickerDep";
 import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 import type { ColDef } from "ag-grid-community";
@@ -16,19 +16,16 @@ import { AgGridReact } from "ag-grid-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-
-
-
 interface Hesap {
   id: number;
-  mail: string; 
-  mail_sifre?: string | null; 
-  kullanici_adi: string; 
-  ea_play_varmi?: boolean | false; 
+  mail: string;
+  mail_sifre?: string | null;
+  kullanici_adi: string;
+  ea_play_varmi?: boolean | false;
   ea_play_alinma_tarihi?: Date | null;
   ea_play_bitis_tarihi?: Date | null;
   oyunlar?: number[] | null;
-  oyun_detaylari?: Array<{ id: number, oyun_adi: string } | null>;
+  oyun_detaylari?: Array<{ id: number; oyun_adi: string } | null>;
   is_deleted?: boolean | null;
   deleted_at?: string | null;
   deleted_by?: string | null;
@@ -45,7 +42,7 @@ export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
   const [formKey, setFormKey] = useState(0); // tagbox içini boşaltabilmek için
-   const [gameList, setGameList] = useState<
+  const [gameList, setGameList] = useState<
     Array<{ label: string; value: string }>
   >([]);
   const [data, setData] = useState<Partial<Hesap>>({
@@ -57,49 +54,64 @@ export default function HesaplarPage() {
     ea_play_bitis_tarihi: undefined,
     oyunlar: [],
   });
-  
+
   // sayfa açılır açılmaz veriler gelsin
-    useEffect(() => {
+  useEffect(() => {
     getHesaplar();
     getOyunList();
   }, []);
 
-  const temizle=()=>{
-  setData(prev=>({...prev,
-    mail: "",
-    kullanici_adi: "",
-    mail_sifre: "",
-    ea_play_alinma_tarihi: undefined,
-    ea_play_bitis_tarihi: undefined,
-    oyunlar: [],
-  }))
-  setFormKey((prev) => prev + 1);
-}
+  const temizle = () => {
+    setData((prev) => ({
+      ...prev,
+      mail: "",
+      kullanici_adi: "",
+      mail_sifre: "",
+      ea_play_alinma_tarihi: undefined,
+      ea_play_bitis_tarihi: undefined,
+      oyunlar: [],
+    }));
+    setFormKey((prev) => prev + 1);
+  };
   // ========== DATAGRID ==============
   const colDefs: ColDef<Hesap>[] = [
     { field: "mail", headerName: "Mail Adresi", filter: true },
     { field: "kullanici_adi", headerName: "Kullanıcı Adı", filter: true },
-    { field: "ea_play_varmi", filter: "agNumberColumnFilter", headerName: "EAPlay" },
-    { field: "ea_play_alinma_tarihi", filter: "agDateColumnFilter", headerName: "EAPlay Alınma T." },
-    { field: "ea_play_bitis_tarihi", filter: "agDateColumnFilter", headerName: "EAPlay Bitiş T." },
     {
-      field: "oyun_detaylari", headerName: "Oyunlar", filter: true,
-      valueFormatter: (params) => {
-        const oyunlar = params.value as Array<{ id: number; oyun_adi: string }> | undefined;
-        return oyunlar?.map(oyun => oyun.oyun_adi).join(", ") || "";
-      }
+      field: "ea_play_varmi",
+      filter: "agNumberColumnFilter",
+      headerName: "EAPlay",
     },
-  ]
+    {
+      field: "ea_play_alinma_tarihi",
+      filter: "agDateColumnFilter",
+      headerName: "EAPlay Alınma T.",
+    },
+    {
+      field: "ea_play_bitis_tarihi",
+      filter: "agDateColumnFilter",
+      headerName: "EAPlay Bitiş T.",
+    },
+    {
+      field: "oyun_detaylari",
+      headerName: "Oyunlar",
+      filter: true,
+      valueFormatter: (params) => {
+        const oyunlar = params.value as
+          | Array<{ id: number; oyun_adi: string }>
+          | undefined;
+        return oyunlar?.map((oyun) => oyun.oyun_adi).join(", ") || "";
+      },
+    },
+  ];
 
   const defaultColDef: ColDef = {
     flex: 1,
   };
 
- 
-  
-// ========== SERVICE ==============
+  // ========== SERVICE ==============
 
-// Hesapları getirme
+  // Hesapları getirme
   const getHesaplar = async () => {
     await serviseGit<Hesap[]>({
       url: "/api/hesaplar",
@@ -134,7 +146,12 @@ export default function HesaplarPage() {
 
   // Yeni hesap ekleme
   const hesapEkle = async () => {
-    if (!data.mail || !data.kullanici_adi || !data.oyunlar || data.oyunlar.length === 0) {
+    if (
+      !data.mail ||
+      !data.kullanici_adi ||
+      !data.oyunlar ||
+      data.oyunlar.length === 0
+    ) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
     }
@@ -147,7 +164,8 @@ export default function HesaplarPage() {
         mail_sifre: data.mail_sifre || null,
         ea_play_varmi: data.ea_play_varmi,
         ea_play_alinma_tarihi:
-          data.ea_play_alinma_tarihi?.toLocaleDateString().split("T")[0] || null,
+          data.ea_play_alinma_tarihi?.toLocaleDateString().split("T")[0] ||
+          null,
         ea_play_bitis_tarihi:
           data.ea_play_bitis_tarihi?.toLocaleDateString().split("T")[0] || null,
         oyunlar: data.oyunlar,
@@ -176,8 +194,8 @@ export default function HesaplarPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
-        <div className="lg:col-span-3 xl:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="oyunAdi" className="mb-1">
             Mail
           </Label>
@@ -195,7 +213,7 @@ export default function HesaplarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="kullaniciAdi" className="mb-1">
             Kullanıcı Adı
           </Label>
@@ -213,7 +231,7 @@ export default function HesaplarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="sifre" className="mb-1">
             Şifre
           </Label>
@@ -231,7 +249,7 @@ export default function HesaplarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="eaplay" className="mb-1">
             EaPlay Var Mı?
           </Label>
@@ -249,7 +267,7 @@ export default function HesaplarPage() {
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="eaPlayBaslangic" className="mb-1">
             EaPlay Alınma Tarihi
           </Label>
@@ -257,14 +275,13 @@ export default function HesaplarPage() {
             value={data.ea_play_alinma_tarihi}
             disabled={!data.ea_play_varmi}
             onValueChange={(date) => {
-              setData({ ...data, ea_play_alinma_tarihi: date })
-            }
-            }
+              setData({ ...data, ea_play_alinma_tarihi: date });
+            }}
             placeholder="Tarih seçin"
           />
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="eaPlayBitis" className="mb-1">
             EaPlay Bitiş Tarihi
           </Label>
@@ -277,25 +294,29 @@ export default function HesaplarPage() {
             placeholder="Tarih seçin"
           />
         </div>
-        <div className="lg:col-span-5 ">
+
+        <div className="md:col-span-8 lg:col-span-5 ">
           <Label htmlFor="oyunlar" className="mb-1">
             Oyunlar
           </Label>
           <TagBoxDep
-          key={formKey}
+            key={formKey}
             options={gameList}
-            onValueChange={(value) => setData((prev) => ({
-              ...prev,
-              oyunlar: value.map(v => Number(v)),
-            }))}
+            onValueChange={(value) =>
+              setData((prev) => ({
+                ...prev,
+                oyunlar: value.map((v) => Number(v)),
+              }))
+            }
             placeholder="Oyun Seçiniz..."
             className="w-full "
             value={data.oyunlar?.map(String) || []}
             maxCount={4}
           />
         </div>
-        <div className="lg:col-span-2 xl:col-span-2 lg:self-end flex gap-y-2 gap-x-2 gap-2">
-          <Button onClick={hesapEkle} color="blue" variant="surface">
+
+        <div className="md:col-span-4  lg:col-span-2 xl:col-span-1 content-end">
+          <Button onClick={hesapEkle} variant="outline" size={"lg"}>
             Ekle
           </Button>
         </div>
@@ -308,6 +329,8 @@ export default function HesaplarPage() {
           rowData={hesapList}
           columnDefs={colDefs}
           defaultColDef={defaultColDef}
+          //onGridReady={(params) => params.api.autoSizeAllColumns()}
+          //onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
         />
       </div>
     </div>

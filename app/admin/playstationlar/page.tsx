@@ -10,20 +10,21 @@ import {
   psTypes,
   kasaTipleri,
 } from "@/lib/adminPages";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
-import { FileUpload } from "@/components/ui/admin-file-upload";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import GameAddPageCard from "@/components/ui/game-add-card";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
-import { Button, IconButton } from "@radix-ui/themes";
+// import { Button, IconButton } from "@radix-ui/themes";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { set } from "date-fns";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 import { IconEdit } from "@tabler/icons-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Button } from "@/components/ui/button";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -53,7 +54,7 @@ interface Hesap {
 
 export default function PlaystationlarPage() {
   const { serviseGit } = useServiceHook();
-  const [resetFileUpload, setResetFileUpload] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [cihazList, setCihazList] = useState<Cihaz[]>([]);
   const [hesapList, setHesapList] = useState<
     { label: string; value: string }[]
@@ -85,8 +86,9 @@ export default function PlaystationlarPage() {
       aciklama: "",
       cihaz_fotograf: "",
     });
-    setResetFileUpload(true);
-    setTimeout(() => setResetFileUpload(false), 100);
+    if (fileInputRef.current) {
+  fileInputRef.current.value = "";
+}
   };
 
   //fotoğraf
@@ -216,7 +218,7 @@ export default function PlaystationlarPage() {
         );
       },
       width: 60,
-      pinned: "right",
+     // pinned: "right",
     },
   ];
 
@@ -236,8 +238,8 @@ export default function PlaystationlarPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
-        <div className="lg:col-span-4 xl:col-span-3">
+      <div className="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 xl:grid-cols-12 gap-x-4 gap-y-6">
+        <div className="md:col-span-6 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="cihazTuru" className="mb-1">
             Cihaz Türü
           </Label>
@@ -254,7 +256,7 @@ export default function PlaystationlarPage() {
             size="2"
           />
         </div>
-        <div className="lg:col-span-4 xl:col-span-3">
+        <div className="md:col-span-6  lg:col-span-3 xl:col-span-2">
           <Label htmlFor="kasatipi" className="mb-1">
             Kasa Tipi
           </Label>
@@ -270,7 +272,7 @@ export default function PlaystationlarPage() {
             }
           />
         </div>
-        <div className="lg:col-span-5 xl:col-span-4">
+        <div className="md:col-span-6  lg:col-span-6 xl:col-span-4">
           <Label htmlFor="serino" className="mb-1">
             Seri No
           </Label>
@@ -287,7 +289,7 @@ export default function PlaystationlarPage() {
             placeholder="Seri No"
           />
         </div>
-        <div className="lg:col-span-4 xl:col-span-3">
+        <div className="md:col-span-6  lg:col-span-6 xl:col-span-4">
           <Label htmlFor="acilisHesabi" className="mb-1">
             Açılış Hesabı
           </Label>
@@ -303,7 +305,7 @@ export default function PlaystationlarPage() {
             }
           />
         </div>
-        <div className="lg:col-span-4 xl:col-span-3">
+        <div className="md:col-span-6  lg:col-span-6 xl:col-span-4">
           <Label htmlFor="kardesHesap" className="mb-1">
             2. Hesap
           </Label>
@@ -319,7 +321,7 @@ export default function PlaystationlarPage() {
             }
           />
         </div>
-        <div className="lg:col-span-4 xl:col-span-3">
+        <div className="md:col-span-6  lg:col-span-4 xl:col-span-4">
           <Label htmlFor="kolikimail" className="mb-1">
             Kol İki Mail
           </Label>
@@ -336,7 +338,7 @@ export default function PlaystationlarPage() {
             placeholder="Kol İki Mail"
           />
         </div>
-        <div className="lg:col-span-5 xl:col-span-4">
+        <div className="md:col-span-6 lg:col-span-4 xl:col-span-4">
           <Label htmlFor="aciklama" className="mb-1">
             Açıklama
           </Label>
@@ -353,18 +355,41 @@ export default function PlaystationlarPage() {
             placeholder="Açıklama"
           />
         </div>
-        <div className="lg:col-span-4 xl:col-span-3">
-          <Label htmlFor="gorsel" className="mb-1">
+        <div className="md:col-span-6  lg:col-span-4">
+          <Label htmlFor="picture" className="mb-1">
             Cihaz Fotoğrafı
           </Label>
-          <FileUpload
-            single
-            onChange={handleFileUpload}
-            reset={resetFileUpload}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              ref={fileInputRef}
+              id="gorsel"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                handleFileUpload(files);
+              }}
+            />
+            {data.cihaz_fotograf && (
+              <HoverCard>
+                <HoverCardTrigger>
+                  <Button variant="ghost" size="icon">
+                    👁️
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="p-2 w-auto">
+                  <img
+                    src={data.cihaz_fotograf}
+                    alt="Önizleme"
+                    className="w-40 h-40 object-cover rounded"
+                  />
+                </HoverCardContent>
+              </HoverCard>
+            )}
+          </div>
         </div>
-        <div className="lg:col-span-2 xl:col-span-1">
-          <Button onClick={cihazEkle} color="blue" variant="surface">
+        <div className="md:col-span-6  lg:col-span-2 xl:col-span-1 content-end">
+          <Button onClick={cihazEkle} variant="outline">
             Ekle
           </Button>
         </div>
@@ -379,6 +404,7 @@ export default function PlaystationlarPage() {
           onGridReady={(params) => params.api.autoSizeAllColumns()}
           onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
           // defaultColDef={defaultColDef}
+          //rowSelection="single"
         />
       </div>
     </div>

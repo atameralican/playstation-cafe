@@ -13,6 +13,12 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <SidebarAdmin>
-     <Theme >{children}<ToastProvider /></Theme></SidebarAdmin>;
+  return (
+    <SidebarAdmin>
+      <Theme>
+        {children}
+        <ToastProvider />
+      </Theme>
+    </SidebarAdmin>
+  );
 }

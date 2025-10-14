@@ -23,7 +23,7 @@ export default function RootLayout({
         <ThemeProvider>
           <MainNavbar navItems={navItems} />
 
-          <main className="flex-1 overflow-y-auto container mx-auto p-8">
+          <main className="flex-1 w-full px-4 py-6 sm:px-6 sm:py-8 md:px-8 xl:container xl:mx-auto justify-center"> 
             {children}
             <GlobalLoadingOverlay />
           </main>
