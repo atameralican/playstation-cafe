@@ -18,6 +18,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -331,6 +332,27 @@ export default function PlaystationlarPage() {
             placeholder="Kol İki Mail"
           />
         </div>
+
+  <div className="md:col-span-6  lg:col-span-4 xl:col-span-4 ">
+          <Label htmlFor="oyunlar" className="mb-1">
+            Yüklü Oyunlar 
+          </Label>
+          {/* <TagBoxDep
+            key={formKey}
+            options={gameList}
+            onValueChange={(value) =>
+              setData((prev) => ({
+                ...prev,
+                oyunlar: value.map((v) => Number(v)),
+              }))
+            }
+            placeholder="Oyun Seçiniz..."
+            className="w-full "
+            value={data.oyunlar?.map(String) || []}
+            maxCount={4}
+          /> */}
+        </div>
+
         <div className="md:col-span-6 lg:col-span-4 xl:col-span-4">
           <Label htmlFor="aciklama" className="mb-1">
             Açıklama
@@ -351,7 +373,7 @@ export default function PlaystationlarPage() {
         <div className="md:col-span-6  lg:col-span-4">
           <Label htmlFor="picture" className="mb-1">
             Cihaz Fotoğrafı
-          </Label>
+          </Label>  
           <div className="flex items-center gap-2">
             <Input
               ref={fileInputRef}
@@ -363,7 +385,7 @@ export default function PlaystationlarPage() {
                 handleFileUpload(files);
               }}
             />
-            {data.cihaz_fotograf && (
+            {data.cihaz_fotograf && ( 
               <HoverCard>
                 <HoverCardTrigger>
                   <Button variant="ghost" size="icon">
