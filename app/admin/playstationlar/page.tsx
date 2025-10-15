@@ -2,28 +2,21 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  kisiSayisi,
-  customPsType,
-  evetHayir,
-  oyunTurleri,
-  psTypes,
-  kasaTipleri,
-} from "@/lib/adminPages";
+import { psTypes, kasaTipleri } from "@/lib/adminPages";
 import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
-import GameAddPageCard from "@/components/ui/game-add-card";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
-// import { Button, IconButton } from "@radix-ui/themes";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { set } from "date-fns";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
-import { IconEdit } from "@tabler/icons-react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -87,8 +80,8 @@ export default function PlaystationlarPage() {
       cihaz_fotograf: "",
     });
     if (fileInputRef.current) {
-  fileInputRef.current.value = "";
-}
+      fileInputRef.current.value = "";
+    }
   };
 
   //fotoğraf
@@ -193,7 +186,7 @@ export default function PlaystationlarPage() {
   const colDefs: ColDef<Cihaz>[] = [
     { field: "cihaz_turu", headerName: "Cihaz Türü", filter: true },
     { field: "kasa_tipi", headerName: "Kasa Tipi", filter: true },
-    { field: "seri_no", headerName: "Seri No", filter: false ,width: 250,},
+    { field: "seri_no", headerName: "Seri No", filter: false, width: 250 },
     {
       minWidth: 250,
       field: "acilis_hesabi",
@@ -218,7 +211,7 @@ export default function PlaystationlarPage() {
         );
       },
       width: 60,
-     // pinned: "right",
+      // pinned: "right",
     },
   ];
 

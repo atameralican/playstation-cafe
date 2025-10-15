@@ -5,7 +5,6 @@ import { showToast } from "@/components/ui/alertDep";
 // GET - Hesaplar listele (oyun detayları ile)
 export async function GET() {
   try {
-    // Önce hesapları çek
     const { data: hesaplar, error: hesapError } = await supabase
       .from("hesaplar")
       .select("*")
@@ -13,12 +12,12 @@ export async function GET() {
 
     if (hesapError) throw hesapError;
 
-    // Eğer hesap yoksa boş array döndür
+    //hesap yoksa boş array 
     if (!hesaplar || hesaplar.length === 0) {
       return NextResponse.json([]);
     }
 
-    // Tüm oyun ID'lerini topla
+    // oyun IDleri
     const tumOyunIdleri = Array.from(
       new Set(
         hesaplar
@@ -27,7 +26,6 @@ export async function GET() {
       )
     );
 
-    // Oyunları bir seferde çek
     const { data: oyunlar, error: oyunError } = await supabase
       .from("oyunlar")
       .select("id, oyun_adi")
@@ -35,12 +33,11 @@ export async function GET() {
 
     if (oyunError) throw oyunError;
 
-    // Oyun ID -> Oyun Adı mapping oluştur
+    // Oyun ID - Oyun Adı mapping oluştur
     const oyunMap = new Map(
       oyunlar?.map((oyun) => [oyun.id, oyun.oyun_adi]) || []
     );
 
-    // Hesaplara oyun detaylarını ekle
     const enrichedHesaplar = hesaplar.map((hesap) => ({
       ...hesap,
       oyun_detaylari:
@@ -53,7 +50,7 @@ export async function GET() {
     return NextResponse.json(enrichedHesaplar);
   } catch (error) {
     console.error("Hesaplar getirilemedi:", error);
-    showToast (`Hesaplar getirilemedi: ${error}`, "error");
+    showToast(`Hesaplar getirilemedi: ${error}`, "error");
     return NextResponse.json(
       { error: "Hesaplar getirilemedi", details: error },
       { status: 500 }
@@ -87,7 +84,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error("Hesap ekleme hatası:", error);
-    showToast (`Ekleme hatası: ${error}`, "error");
+    showToast(`Ekleme hatası: ${error}`, "error");
     return NextResponse.json(
       {
         error: "Hesap eklenemedi",

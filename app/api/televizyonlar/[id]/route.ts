@@ -3,13 +3,13 @@ import { supabase } from "@/lib/supabase";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
     const { id } = await params;
 
     const { data, error } = await supabase
-      .from("cihazlar")
+      .from("televizyonlar")
       .update({ is_deleted: true, deleted_at: new Date().toISOString() })
       .eq("id", id)
       .select()

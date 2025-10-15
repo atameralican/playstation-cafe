@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Oyun ekleme hatası:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Oyun eklenemedi',
       details: error
     }, { status: 500 });
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error('Oyun güncelleme hatası:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Oyun güncellenemedi',
       details: error
     }, { status: 500 });

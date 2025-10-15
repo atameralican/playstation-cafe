@@ -2,41 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { showToast } from "@/components/ui/alertDep";
 
-// GET - Cihazlar listele 
+// GET - tvler list
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from('cihazlar')
+      .from('televizyonlar')
       .select('*')
       .eq('is_deleted', false)
-      .order('created_at', { ascending: false });
+      .order('marka', { ascending: false });
 
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Cihazlar getirilemedi:', error);
-    showToast(`Cihazlar getirilemedi: ${error}`, "error");
-    return NextResponse.json({ error: 'Cihazlar getirilemedi' }, { status: 500 });
+    console.error('Televizyonlar getirilemedi:', error);
+    showToast(`Televizyonlar getirilemedi: ${error}`, "error");
+    return NextResponse.json({ error: 'Televizyonlar getirilemedi' }, { status: 500 });
   }
 }
 
-// POST - Yeni hesap ekle
+// POST - Yeni tv ekle
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     const { data, error } = await supabase
-      .from("cihazlar")
+      .from("televizyonlar")
       .insert([
         {
-          cihaz_turu: body.cihaz_turu,
-          seri_no: body.seri_no || null,
-          acilis_hesabi: body.acilis_hesabi || null,
-          ikinci_hesap: body.ikinci_hesap || null,
-          kol_iki_mail: body.kol_iki_mail || null,
-          kasa_tipi: body.kasa_tipi || null,
+          marka: body.marka,
+          model: body.model || null,
+          seriNo: body.seriNo || null,
+          boyut: body.boyut,
+          garanti: body.garanti,
+          ariza: body.ariza,
           aciklama: body.aciklama || null,
-          cihaz_fotograf: body.cihaz_fotograf || null,
+          tv_fotograf: body.tv_fotograf || null,
         },
       ])
       .select()
@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error("Hesap ekleme hatası:", error);
+    console.error("Televizyon ekleme hatası:", error);
     showToast(`Ekleme hatası: ${error}`, "error");
     return NextResponse.json(
       {
-        error: "Hesap eklenemedi",
+        error: "Televizyon eklenemedi",
         details: error,
       },
       { status: 500 }
