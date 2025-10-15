@@ -34,6 +34,7 @@ interface Cihaz {
   kasa_tipi?: string;
   aciklama?: string;
   cihaz_fotograf?: string;
+  yuklu_oyunlar?: number[];
   ekstra_1?: string;
   ekstra_2?: string;
 }
@@ -46,6 +47,16 @@ interface Hesap {
   label?: string;
 }
 
+interface OyunOption {
+  value: string;
+  label: string;
+  id?: number;
+  oyun_adi?: string;
+  cihaz_turu?: string;
+  kategori?: string;
+  gorsel?: string;
+}
+
 export default function PlaystationlarPage() {
   const { serviseGit } = useServiceHook();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -53,6 +64,8 @@ export default function PlaystationlarPage() {
   const [hesapList, setHesapList] = useState<
     { label: string; value: string }[]
   >([]);
+  const [formKey, setFormKey] = useState(0); // TagBox'ı resetlemek için
+  const [availableGames, setAvailableGames] = useState<OyunOption[]>([]); // Hesaplardaki oyunlar
   const [data, setData] = useState<Partial<Cihaz>>({
     cihaz_turu: "PS4",
     seri_no: "",
@@ -62,12 +75,25 @@ export default function PlaystationlarPage() {
     kasa_tipi: "",
     aciklama: "",
     cihaz_fotograf: "",
+    yuklu_oyunlar: [],
   });
 
   useEffect(() => {
     getCihazlar();
     getHesaplarMiniList();
   }, []);
+
+  // Açılış hesabı veya ikinci hesap değiştiğinde oyunları getir
+  useEffect(() => {
+    if (data.acilis_hesabi || data.ikinci_hesap) {
+      getHesapOyunlari();
+    } else {
+      // Hiçbir hesap seçili değilse oyun listesini temizle
+      setAvailableGames([]);
+      setData(prev => ({ ...prev, yuklu_oyunlar: [] }));
+      setFormKey(prev => prev + 1);
+    }
+  }, [data.acilis_hesabi, data.ikinci_hesap]);
 
   const temizle = () => {
     setData({
@@ -79,7 +105,10 @@ export default function PlaystationlarPage() {
       kasa_tipi: "",
       aciklama: "",
       cihaz_fotograf: "",
+      yuklu_oyunlar: [],
     });
+    setAvailableGames([]);
+    setFormKey(prev => prev + 1);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -134,6 +163,42 @@ export default function PlaystationlarPage() {
     });
   };
 
+  // YENİ FONKSİYON: Seçili hesaplardaki oyunları getir
+  const getHesapOyunlari = async () => {
+    try {
+      await serviseGit<{ oyunlar: OyunOption[], toplamOyun: number }>({
+        method: "POST",
+        url: "/api/cihazlar/hesap-oyunlari",
+        body: {
+          acilis_hesabi: data.acilis_hesabi,
+          ikinci_hesap: data.ikinci_hesap
+        },
+        onSuccess: (response) => {
+          const { oyunlar } = response as { oyunlar: OyunOption[], toplamOyun: number };
+          setAvailableGames(oyunlar || []);
+          
+          // Mevcut seçili oyunları temizle (yeni hesaptaki oyunlar değişmiş olabilir)
+          setData(prev => ({ ...prev, yuklu_oyunlar: [] }));
+          setFormKey(prev => prev + 1);
+          
+          if (oyunlar && oyunlar.length > 0) {
+            showToast(`${oyunlar.length} oyun bulundu`, "success");
+          } else {
+            showToast("Seçili hesaplarda oyun bulunamadı", "error");
+          }
+        },
+        onError: (error) => {
+          console.log("/api/cihazlar/hesap-oyunlari: ", error.message);
+          showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
+          setAvailableGames([]);
+        },
+      });
+    } catch (error) {
+      console.error("Hesap oyunları getirilemedi:", error);
+      setAvailableGames([]);
+    }
+  };
+
   const cihazEkle = async () => {
     if (!data.cihaz_turu || !data.kasa_tipi) {
       showToast("Lütfen cihaz türü ve kasa tipini giriniz.", "error");
@@ -151,6 +216,7 @@ export default function PlaystationlarPage() {
         kasa_tipi: data.kasa_tipi,
         aciklama: data.aciklama,
         cihaz_fotograf: data.cihaz_fotograf,
+        yuklu_oyunlar: data.yuklu_oyunlar || [],
       },
       onSuccess: () => {
         showToast("Cihaz eklendi!", "success");
@@ -201,6 +267,15 @@ export default function PlaystationlarPage() {
       filter: true,
     },
     { field: "kol_iki_mail", headerName: "Kol İki Mail" },
+    { 
+      field: "yuklu_oyunlar", 
+      headerName: "Yüklü Oyun Sayısı",
+      valueFormatter: (params) => {
+        const oyunlar = params.value as number[] | undefined;
+        return oyunlar ? `${oyunlar.length} oyun` : "0 oyun";
+      },
+      width: 150 
+    },
     { field: "aciklama", headerName: "Açıklama" },
     {
       headerName: "Sil",
@@ -333,24 +408,31 @@ export default function PlaystationlarPage() {
           />
         </div>
 
-  <div className="md:col-span-6  lg:col-span-4 xl:col-span-4 ">
+        <div className="md:col-span-6  lg:col-span-4 xl:col-span-4 ">
           <Label htmlFor="oyunlar" className="mb-1">
-            Yüklü Oyunlar 
+            Yüklü Oyunlar {availableGames.length > 0 && `(${availableGames.length} oyun mevcut)`}
           </Label>
-          {/* <TagBoxDep
+          <TagBoxDep
             key={formKey}
-            options={gameList}
+            options={availableGames}
             onValueChange={(value) =>
               setData((prev) => ({
                 ...prev,
-                oyunlar: value.map((v) => Number(v)),
+                yuklu_oyunlar: value.map((v) => Number(v)),
               }))
             }
-            placeholder="Oyun Seçiniz..."
-            className="w-full "
-            value={data.oyunlar?.map(String) || []}
+            placeholder={
+              !data.acilis_hesabi && !data.ikinci_hesap 
+                ? "Önce hesap seçiniz..." 
+                : availableGames.length === 0 
+                  ? "Seçili hesaplarda oyun yok..." 
+                  : "Oyun Seçiniz..."
+            }
+            className="w-full"
+            value={data.yuklu_oyunlar?.map(String) || []}
             maxCount={4}
-          /> */}
+            disabled={availableGames.length === 0}
+          />
         </div>
 
         <div className="md:col-span-6 lg:col-span-4 xl:col-span-4">
