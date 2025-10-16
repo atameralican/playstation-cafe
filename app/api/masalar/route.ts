@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import type { OyunObject } from "@/lib/types/masalar";
 
 // GET - Masalar listele
 export async function GET() {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Cihaz 1 bilgilerini al
     let cihaz1Object = null;
-    let yukluOyunlar: any[] = [];
+    let yukluOyunlar: OyunObject[] = [];
 
     if (body.cihaz) {
       const { data: cihazData, error: cihazError } = await supabase
@@ -138,7 +139,7 @@ export async function PUT(request: NextRequest) {
 
     // Cihaz 1 bilgilerini al
     let cihaz1Object = null;
-    let yukluOyunlar: any[] = [];
+    let yukluOyunlar: OyunObject[] = [];
 
     if (updateData.cihaz) {
       const { data: cihazData, error: cihazError } = await supabase

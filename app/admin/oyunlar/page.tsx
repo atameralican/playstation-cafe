@@ -26,6 +26,8 @@ import {
 import Image from "next/image";
 import { Pencil, Trash2 } from "lucide-react";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
+import { useTheme } from "next-themes";
+import { getAgGridTheme } from "@/lib/agGridTheme";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -54,6 +56,7 @@ export default function OyunlarPage() {
   const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { serviseGit } = useServiceHook();
+  const { theme } = useTheme();
 
   useEffect(() => {
     oyunlariYukle();
@@ -292,9 +295,6 @@ export default function OyunlarPage() {
     resizable: true,
   };
 
-  // Grid tema ayarları
-  const gridTheme = "ag-theme-alpine"; // veya "ag-theme-material" kullanılabilir
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -454,10 +454,11 @@ export default function OyunlarPage() {
         </h3>
         
         <div 
-          className={`${gridTheme} rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700`}
+          className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
           style={{ width: "100%", height: "500px" }}
         >
           <AgGridReact
+            theme={getAgGridTheme(theme === "dark")}
             rowData={oyunlar}
             columnDefs={colDefs}
             defaultColDef={defaultColDef}

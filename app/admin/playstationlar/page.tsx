@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
+import { useTheme } from "next-themes";
+import { getAgGridTheme } from "@/lib/agGridTheme";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -59,6 +61,7 @@ interface OyunOption {
 
 export default function PlaystationlarPage() {
   const { serviseGit } = useServiceHook();
+  const { theme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [cihazList, setCihazList] = useState<Cihaz[]>([]);
   const [hesapList, setHesapList] = useState<
@@ -494,8 +497,12 @@ export default function PlaystationlarPage() {
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">Playstation (Cihaz) Listesi</h3>
-      <div style={{ width: "100%", height: "500px" }} className="pb-5">
+      <div 
+        className="pb-5"
+        style={{ width: "100%", height: "500px" }}
+      >
         <AgGridReact
+          theme={getAgGridTheme(theme === "dark")}
           rowData={cihazList}
           columnDefs={colDefs}
           onGridReady={(params) => params.api.autoSizeAllColumns()}

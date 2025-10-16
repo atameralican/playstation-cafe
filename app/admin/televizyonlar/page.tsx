@@ -18,6 +18,8 @@ import { Checkbox } from "@radix-ui/themes";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { showToast } from "@/components/ui/alertDep";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
+import { useTheme } from "next-themes";
+import { getAgGridTheme } from "@/lib/agGridTheme";
 ModuleRegistry.registerModules([AllCommunityModule]);
 interface TV {
   id: number;
@@ -37,6 +39,7 @@ interface TV {
 
 export default function TelevizyonlarPage() {
   const { serviseGit } = useServiceHook();
+  const { theme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [tvList, setTvList] = useState<TV[]>([]);
   const [data, setData] = useState<Partial<TV>>({
@@ -368,8 +371,12 @@ export default function TelevizyonlarPage() {
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">TV Listesi</h3>
-      <div style={{ width: "100%", height: "500px" }} className="pb-5">
+      <div 
+        className="pb-5"
+        style={{ width: "100%", height: "500px" }}
+      >
         <AgGridReact
+          theme={getAgGridTheme(theme === "dark")}
           rowData={tvList}
           columnDefs={colDefs}
           onGridReady={(params) => params.api.autoSizeAllColumns()}

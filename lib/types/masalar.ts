@@ -22,7 +22,7 @@ export interface Masa {
   masa_no: string;
   durum?: "aktif" | "bakim" | "arizali" | "kapali";
 
-  // JSONB Objeler
+  // JSONB Objeler (Supabase'den gelen gerçek tipler)
   cihaz?: CihazObject | null;
   cihaz2?: CihazObject | null;
   televizyon?: TelevizionObject | null;
@@ -37,7 +37,7 @@ export interface Masa {
   // Ekstra Alanlar
   ekstra_1?: string | null;
   ekstra_2?: string | null;
-  ekstra_3?: any | null;
+  ekstra_3?: string | null;
 }
 
 /**
@@ -82,7 +82,7 @@ export interface TelevizionObject {
 }
 
 /**
- * Oyun objesi (JSONB içinde saklanır)
+ * Oyun objesi (JSONB içinde saklanır - API'den gelen tam obje)
  * Oyunlar tablosundaki bir kaydın snapshot'ı
  */
 export interface OyunObject {
@@ -94,6 +94,7 @@ export interface OyunObject {
   kategori: string;
   ea_playde_mi: boolean;
   gorsel?: string | null;
+  aciklama?: string | null;
 }
 
 /**

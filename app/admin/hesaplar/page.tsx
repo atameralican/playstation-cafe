@@ -13,6 +13,8 @@ import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { useTheme } from "next-themes";
+import { getAgGridTheme } from "@/lib/agGridTheme";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -40,6 +42,7 @@ interface Oyun {
 
 export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
+  const { theme } = useTheme();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
   const [formKey, setFormKey] = useState(0); // tagbox içini boşaltabilmek için
   const [gameList, setGameList] = useState<
@@ -324,8 +327,12 @@ export default function HesaplarPage() {
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">PSN Hesapları Listesi</h3>
-      <div style={{ width: "100%", height: "500px" }} className="pb-5">
+      <div 
+        className="pb-5"
+        style={{ width: "100%", height: "500px" }}
+      >
         <AgGridReact
+          theme={getAgGridTheme(theme === "dark")}
           rowData={hesapList}
           columnDefs={colDefs}
           defaultColDef={defaultColDef}

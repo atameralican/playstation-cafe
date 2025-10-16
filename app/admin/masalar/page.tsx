@@ -12,6 +12,9 @@ import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { showToast } from "@/components/ui/alertDep";
 import { AlertDialog, Flex, Button as RadixButton } from "@radix-ui/themes";
 import { Textarea } from "@/components/ui/textarea";
+import { useTheme } from "next-themes";
+import { getAgGridTheme } from "@/lib/agGridTheme";
+import type { Masa, CihazObject, TelevizionObject, OyunObject } from "@/lib/types/masalar";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -31,21 +34,9 @@ interface TV {
   kasa_tipi?: string;
 }
 
-interface Masa {
-  id: number;
-  masa_no: string;
-  cihaz?: any;
-  cihaz2?: any;
-  televizyon?: any;
-  yuklu_oyunlar?: any[];
-  aciklama?: string;
-  problem?: string;
-  durum?: string;
-  created_at: string;
-}
-
 function Masalar() {
   const { serviseGit } = useServiceHook();
+  const { theme } = useTheme();
   const [tvListMini, setTvListMini] = useState<TV[]>([]);
   const [cihazListMini, setCihazListMini] = useState<Cihaz[]>([]);
   const [masaList, setMasaList] = useState<Masa[]>([]);
@@ -437,8 +428,12 @@ function Masalar() {
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">Masa Listesi ({masaList.length})</h3>
-      <div style={{ width: "100%", height: "500px" }} className="pb-5">
+      <div 
+        className="pb-5"
+        style={{ width: "100%", height: "500px" }}
+      >
         <AgGridReact
+          theme={getAgGridTheme(theme === "dark")}
           rowData={masaList}
           columnDefs={colDefs}
           onGridReady={(params) => params.api.autoSizeAllColumns()}
