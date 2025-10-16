@@ -11,15 +11,23 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
-import GameAddPageCard from "@/components/ui/game-add-card";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { Button } from "@/components/ui/button";
+import type { ColDef } from "ag-grid-community";
+import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
+import defaultImg from "@/public/logo.png"
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import Image from "next/image";
+import { Pencil, Trash2 } from "lucide-react";
+import DeleteAlertModal from "@/components/ui/deleteAlertDep";
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface Oyun {
   id: number;
@@ -30,6 +38,7 @@ interface Oyun {
   kategori: string;
   ea_playde_mi: boolean;
   gorsel: string | null;
+  aciklama?: string;
 }
 
 export default function OyunlarPage() {
@@ -167,6 +176,125 @@ export default function OyunlarPage() {
     });
   };
 
+  // ========== DATAGRID ==============
+  const colDefs: ColDef<Oyun>[] = [
+    {
+      headerName: "Oyun",
+      field: "oyun_adi",
+      cellRenderer: (params: { data: Oyun }) => {
+        return (
+          <div className="flex items-center gap-3 py-2">
+            {/* Modern görsel container */}
+            <div className="relative overflow-hidden rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <Image
+                src={params.data.gorsel || defaultImg}
+                alt={params.data.oyun_adi}
+                width={48}
+                height={48}
+                className="w-12 h-12 object-cover"
+              />
+            </div>
+            
+            {/* Oyun bilgileri */}
+            <div className="flex flex-col">
+              <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                {params.data.oyun_adi}
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {params.data.cihaz_turu.toLocaleUpperCase()}
+                </span>
+                {params.data.ea_playde_mi && (
+                  <span className="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                    EA Play
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      },
+      minWidth: 280,
+      flex: 2,
+      filter: true,
+    },
+    { 
+      field: "kategori", 
+      headerName: "Kategori",
+      cellRenderer: (params: { data: Oyun }) => {
+        return (
+          <span className="inline-flex items-center rounded-lg bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-400">
+            {params.data.kategori}
+          </span>
+        );
+      },
+      minWidth: 120,
+      filter: true 
+    },
+    { 
+      field: "kac_kisilik", 
+      headerName: "Kişi Sayısı",
+      cellRenderer: (params: { data: Oyun }) => {
+        const kisiIcon = params.data.kac_kisilik === 1 ? "👤" : "👥";
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="text-base">{kisiIcon}</span>
+            <span className="font-medium">{params.data.kac_kisilik} Kişilik</span>
+          </div>
+        );
+      },
+      minWidth: 100,
+      filter: true 
+    },
+    { 
+      field: "aciklama", 
+      headerName: "Açıklama",
+      cellRenderer: (params: { data: Oyun }) => {
+        return (
+          <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+            {params.data.aciklama || "—"}
+          </span>
+        );
+      },
+      flex: 1,
+      minWidth: 150,
+      filter: true 
+    },
+    {
+      headerName: "İşlemler",
+      cellRenderer: (params: { data: Oyun }) => {
+        return (
+          <div className="flex items-center justify-center gap-1 h-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              onClick={() => oyunDuzenle(params.data)}
+            >
+              <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </Button>
+            <DeleteAlertModal 
+              onClick={() => oyunSil(params.data.id)}
+              
+            />
+          </div>
+        );
+      },
+      width: 100,
+      pinned: "right",
+      sortable: false,
+      filter: false,
+    },
+  ];
+
+  const defaultColDef: ColDef = {
+    sortable: true,
+    resizable: true,
+  };
+
+  // Grid tema ayarları
+  const gridTheme = "ag-theme-alpine"; // veya "ag-theme-material" kullanılabilir
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -272,7 +400,7 @@ export default function OyunlarPage() {
 
         <div className=" md:col-span-6 lg:col-span-4">
           <Label htmlFor="picture" className="mb-1">
-            Cihaz Fotoğrafı
+            Oyun Görseli
           </Label>
           <div className="flex items-center gap-2">
             <Input
@@ -296,7 +424,7 @@ export default function OyunlarPage() {
                   <img
                     src={data.gorsel}
                     alt="Önizleme"
-                    className="w-40 h-40 object-cover rounded"
+                    className="w-40 h-40 object-cover rounded-lg"
                   />
                 </HoverCardContent>
               </HoverCard>
@@ -324,11 +452,28 @@ export default function OyunlarPage() {
         <h3 className="text-lg font-bold mb-4 text-neutral-700 dark:text-neutral-300">
           Eklenen Oyunlar ({oyunlar.length})
         </h3>
-        <GameAddPageCard
-          data={oyunlar}
-          updateOnClick={oyunDuzenle}
-          deleteOnClick={oyunSil}
-        />
+        
+        <div 
+          className={`${gridTheme} rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700`}
+          style={{ width: "100%", height: "500px" }}
+        >
+          <AgGridReact
+            rowData={oyunlar}
+            columnDefs={colDefs}
+            defaultColDef={defaultColDef}
+            onGridReady={(params) => {
+              params.api.sizeColumnsToFit();
+            }}
+            onGridSizeChanged={(params) => {
+              params.api.sizeColumnsToFit();
+            }}
+            rowHeight={68}
+            animateRows={true}
+            pagination={true}
+            paginationPageSize={10}
+            paginationPageSizeSelector={[10, 20, 50]}
+          />
+        </div>
       </div>
     </div>
   );
