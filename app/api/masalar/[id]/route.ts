@@ -4,9 +4,10 @@ import { supabase } from "@/lib/supabase";
 // DELETE - Masa sil (soft delete with reason)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const reason = searchParams.get("reason") || "Belirtilmemiş";
     const deletedBy = searchParams.get("deleted_by") || "Admin"; // Auth eklenince düzenlenecek
@@ -20,7 +21,7 @@ export async function DELETE(
         deleted_reason: reason,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", parseInt(params.id));
+      .eq("id", parseInt(id));
 
     if (error) throw error;
     return NextResponse.json({ 
