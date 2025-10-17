@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react"; // useState ve useEffect ekleyin
 import * as Icons from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { CountingNumber } from "../shadcn-io/counting-number";
 import Link from "next/link";
 
 interface StatisticCardProps {
-  iconName?: keyof typeof Icons; // Type-safe icon name
+  iconName?: keyof typeof Icons;
   startNumber?: number;
   endNumber?: number;
   inView?: boolean;
@@ -27,7 +27,10 @@ function StatisticCard({
 }: StatisticCardProps) {
   const IconComponent = Icons[iconName] as LucideIcon;
 
-const randomRotateClass = useMemo(() => {
+  // State kullanarak rasgele sınıfı sadece client tarafında ayarlayın
+  const [currentRotateClass, setCurrentRotateClass] = useState("rotate-0"); // Varsayılan bir değerle başlatın
+
+  useEffect(() => {
     const rotateClasses = [
       "-rotate-12",
       "-rotate-6", 
@@ -37,19 +40,21 @@ const randomRotateClass = useMemo(() => {
       "rotate-6",
       "rotate-12"
     ];
-    return rotateClasses[Math.floor(Math.random() * rotateClasses.length)];
-  }, []);
+    const newRotateClass = rotateClasses[Math.floor(Math.random() * rotateClasses.length)];
+    setCurrentRotateClass(newRotateClass);
+  }, []); // Sadece bir kere, bileşen mount edildiğinde çalıştır
 
   return (
     <div className={className}>
       <Link href={href}>
       <article>
-        <div className={`w-14 h-14 rounded shadow-md bg-gradient-to-br from-indigo-100 to-purple-100 flex justify-center items-center ${randomRotateClass} mb-6 transition-transform hover:rotate-0`}>
+        <div className={`w-14 h-14 rounded shadow-md bg-gradient-to-br from-indigo-100 to-purple-100 flex justify-center items-center ${currentRotateClass} mb-6 transition-transform hover:rotate-0`}>
           <IconComponent className={`w-8 h-8 text-indigo-600`} />
         </div>
         <CountingNumber
           number={endNumber}
           fromNumber={startNumber}
+          transition = {{  stiffness: 40, damping: 50 }}
           className="text-4xl"
           inView={inView}
         /><span className="text-4xl">+</span>
