@@ -20,7 +20,9 @@ import { showToast } from "@/components/ui/alertDep";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
+
 ModuleRegistry.registerModules([AllCommunityModule]);
+
 interface TV {
   id: number;
   created_at: Date;
@@ -42,6 +44,7 @@ export default function TelevizyonlarPage() {
   const { theme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [tvList, setTvList] = useState<TV[]>([]);
+  const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const [data, setData] = useState<Partial<TV>>({
     marka: "",
     model: "",
@@ -65,8 +68,7 @@ export default function TelevizyonlarPage() {
       aciklama: "",
       tv_fotograf: "",
     }));
-
-    // setDuzenlenenId(null);
+    setDuzenlenenId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -75,6 +77,7 @@ export default function TelevizyonlarPage() {
   useEffect(() => {
     tvGetir();
   }, []);
+
   //fotoğraf
   const handleFileUpload = async (files: File[]) => {
     let gorselUrl = data?.tv_fotograf;
@@ -88,6 +91,7 @@ export default function TelevizyonlarPage() {
       setData((prev) => ({ ...prev, tv_fotograf: gorselUrl }));
     }
   };
+
   //============ services =============
   const tvGetir = async () => {
     await serviseGit<TV[]>({
@@ -107,31 +111,46 @@ export default function TelevizyonlarPage() {
     });
   };
 
-  const tvEkle = async () => {
+  const tvDuzenle = (tv: TV) => {
+    setDuzenlenenId(tv.id);
+    setData({
+      marka: tv.marka,
+      model: tv.model || "",
+      seriNo: tv.seriNo || "",
+      boyut: tv.boyut,
+      garanti: tv.garanti,
+      ariza: tv.ariza,
+      aciklama: tv.aciklama || "",
+      tv_fotograf: tv.tv_fotograf || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const tvKaydet = async () => {
     if (!data.marka || !data.boyut) {
-      showToast("Lütfen marka ve model bilgisi giriniz.", "error");
+      showToast("Lütfen marka ve boyut bilgisi giriniz.", "error");
       return;
     }
-    serviseGit({
-      method: "POST",
-      url: "/api/televizyonlar",
-      body: {
-        marka: data.marka,
-        model: data.model,
-        seriNo: data.seriNo,
-        boyut: data.boyut,
-        garanti: data.garanti,
-        ariza: data.ariza,
-        aciklama: data.aciklama,
-        tv_fotograf: data.tv_fotograf,
-      },
+
+    const method = duzenlenenId ? "PUT" : "POST";
+    const url = duzenlenenId 
+      ? `/api/televizyonlar/${duzenlenenId}` 
+      : "/api/televizyonlar";
+
+    await serviseGit({
+      method: method,
+      url: url,
+      body: data,
       onSuccess: () => {
-        showToast("Televizyon başarıyla eklendi", "success");
+        showToast(
+          duzenlenenId ? "TV güncellendi!" : "TV eklendi!",
+          "success"
+        );
         tvGetir();
         temizle();
       },
       onError: (error) => {
-        showToast(`Ekleme hatası: ${error.message}`, "error");
+        showToast(`${duzenlenenId ? "Güncelleme" : "Ekleme"} hatası: ${error.message}`, "error");
       },
     });
   };
@@ -173,6 +192,23 @@ export default function TelevizyonlarPage() {
     { field: "ariza", headerName: "Arıza" },
     { field: "aciklama", headerName: "Açıklama", minWidth: 200 },
     {
+      headerName: "Düzenle",
+      cellRenderer: (params: { data: TV }) => {
+        return (
+          <div className="flex items-center justify-center w-full h-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => tvDuzenle(params.data)}
+            >
+              ✏️
+            </Button>
+          </div>
+        );
+      },
+      width: 80,
+    },
+    {
       headerName: "Sil",
       cellRenderer: (params: { data: TV }) => {
         return (
@@ -182,9 +218,9 @@ export default function TelevizyonlarPage() {
         );
       },
       width: 60,
-      // pinned: "right",
     },
   ];
+
   const defaultColDef: ColDef = {
     flex: 1,
   };
@@ -197,7 +233,7 @@ export default function TelevizyonlarPage() {
             Televizyonlar
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            Yeni televizyon ekleme ve televizyonları görüntüleme sayfası
+            Yeni televizyon ekleme, düzenleme ve görüntüleme sayfası
           </p>
         </div>
       </div>
@@ -363,14 +399,21 @@ export default function TelevizyonlarPage() {
         </div>
 
         <div className=" md:col-span-4 lg:col-span-3 xl:col-span-2  content-end">
-          <Button onClick={tvEkle} variant="outline" size={"lg"}>
-            Ekle
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={tvKaydet} variant="outline" size={"lg"}>
+              {duzenlenenId ? "Güncelle" : "Ekle"}
+            </Button>
+            {duzenlenenId && (
+              <Button onClick={temizle} variant="destructive" size={"lg"}>
+                İptal
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       <hr className="my-8 w-full" />
-      <h3 className="font-bold">TV Listesi</h3>
+      <h3 className="font-bold">TV Listesi ({tvList.length})</h3>
       <div 
         className="pb-5"
         style={{ width: "100%", height: "500px" }}
@@ -381,8 +424,6 @@ export default function TelevizyonlarPage() {
           columnDefs={colDefs}
           onGridReady={(params) => params.api.autoSizeAllColumns()}
           onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
-          // defaultColDef={defaultColDef}
-          //rowSelection="single"
         />
       </div>
     </div>

@@ -3,13 +3,13 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { evetHayir } from "@/lib/adminPages";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import { Button } from "@/components/ui/button";
 import { DatePickerDep } from "@/components/ui/custom/datePickerDep";
-import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
+import { MultiSelectRef, TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
@@ -44,7 +44,9 @@ export default function HesaplarPage() {
   const { serviseGit } = useServiceHook();
   const { theme } = useTheme();
   const [hesapList, setHesapList] = useState<Hesap[]>([]);
-  const [formKey, setFormKey] = useState(0); // tagbox içini boşaltabilmek için
+  const multiSelectRef = useRef<MultiSelectRef>(null);
+
+  const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const [gameList, setGameList] = useState<
     Array<{ label: string; value: string }>
   >([]);
@@ -74,8 +76,13 @@ export default function HesaplarPage() {
       ea_play_bitis_tarihi: undefined,
       oyunlar: [],
     }));
-    setFormKey((prev) => prev + 1);
+    setDuzenlenenId(null);
+    //tagbox resetleme işlemi 
+      if (multiSelectRef.current) {
+      multiSelectRef.current.clear();
+    }
   };
+
   // ========== DATAGRID ==============
   const colDefs: ColDef<Hesap>[] = [
     { field: "mail", headerName: "Mail Adresi", filter: true },
@@ -105,6 +112,35 @@ export default function HesaplarPage() {
           | undefined;
         return oyunlar?.map((oyun) => oyun.oyun_adi).join(", ") || "";
       },
+    },
+    {
+      headerName: "İşlemler",
+      cellRenderer: (params: { data: Hesap }) => {
+        return (
+          <div className="flex items-center justify-center gap-1 h-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => hesapDuzenle(params.data)}
+            >
+              ✏️
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => hesapSil(params.data.id)}
+            >
+              🗑️
+            </Button>
+          </div>
+        );
+      },
+      width: 100,
+      pinned: "right",
+      sortable: false,
+      filter: false,
     },
   ];
 
@@ -142,12 +178,50 @@ export default function HesaplarPage() {
         );
       },
       onError: (error) => {
-        showToast(`Hesaplar yüklenemedi: ${error.message}`, "error");
+        showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
       },
     });
   };
 
-  // Yeni hesap ekleme
+  // Hesap düzenle
+  const hesapDuzenle = (hesap: Hesap) => {
+    
+    // Önce ID'yi set et
+    setDuzenlenenId(hesap.id);
+    
+    
+    // Önce data'yı güncelle
+    setData({
+      mail: hesap.mail,
+      kullanici_adi: hesap.kullanici_adi,
+      mail_sifre: hesap.mail_sifre || "",
+      ea_play_varmi: hesap.ea_play_varmi,
+      ea_play_alinma_tarihi: hesap.ea_play_alinma_tarihi 
+        ? new Date(hesap.ea_play_alinma_tarihi) 
+        : undefined,
+      ea_play_bitis_tarihi: hesap.ea_play_bitis_tarihi 
+        ? new Date(hesap.ea_play_bitis_tarihi) 
+        : undefined,
+      oyunlar: hesap.oyunlar|| [],
+    });
+
+    //tagbox setleme 
+   if (multiSelectRef.current) {
+    let selectOyunlar:string[]=[]
+    if (hesap.oyunlar?.[0]) {
+       selectOyunlar=hesap.oyunlar.map((x)=>x.toString())
+    }else{
+      selectOyunlar=[]
+    }
+      multiSelectRef.current.setSelectedValues(selectOyunlar);
+    }
+    
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+ 
+
+  // Yeni hesap ekleme veya güncelleme
   const hesapEkle = async () => {
     if (
       !data.mail ||
@@ -158,28 +232,56 @@ export default function HesaplarPage() {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
     }
-    await serviseGit({
-      url: "/api/hesaplar",
-      method: "POST",
-      body: {
-        mail: data.mail,
-        kullanici_adi: data.kullanici_adi,
-        mail_sifre: data.mail_sifre || null,
-        ea_play_varmi: data.ea_play_varmi,
-        ea_play_alinma_tarihi:
+
+    const method = duzenlenenId ? "PUT" : "POST";
+    
+    // Body'yi hazırla
+    const requestBody = {
+      mail: data.mail,
+      kullanici_adi: data.kullanici_adi,
+      mail_sifre: data.mail_sifre || null,
+      ea_play_varmi: data.ea_play_varmi,
+      ea_play_alinma_tarihi:
           data.ea_play_alinma_tarihi?.toLocaleDateString().split("T")[0] ||
           null,
         ea_play_bitis_tarihi:
           data.ea_play_bitis_tarihi?.toLocaleDateString().split("T")[0] || null,
         oyunlar: data.oyunlar,
-      },
+    };
+    
+    const body = duzenlenenId 
+      ? { id: duzenlenenId, ...requestBody } 
+      : requestBody;
+
+    await serviseGit({
+      url: "/api/hesaplar",
+      method: method,
+      body: body,
       onSuccess: () => {
-        showToast("Hesap eklendi!", "success");
+        showToast(
+          duzenlenenId ? "Hesap güncellendi!" : "Hesap eklendi!",
+          "success"
+        );
         temizle();
         getHesaplar();
       },
       onError: (error) => {
-        showToast(`Ekleme hatası: ${error.message}`, "error");
+        showToast(`${duzenlenenId ? "Güncelleme" : "Ekleme"} hatası: ${error.message}`, "error");
+      },
+    });
+  };
+
+  // Hesap sil
+  const hesapSil = async (id: number) => {
+    await serviseGit({
+      url: `/api/hesaplar?id=${id}`,
+      method: "DELETE",
+      onSuccess: () => {
+        showToast("Hesap silindi!", "success");
+        getHesaplar();
+      },
+      onError: (error) => {
+        showToast(`Silme hatası: ${error.message}`, "error");
       },
     });
   };
@@ -192,7 +294,7 @@ export default function HesaplarPage() {
             Hesaplar
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            Yeni hesap ekleme ve silme.
+            Yeni hesap ekleme, düzenleme ve silme.
           </p>
         </div>
       </div>
@@ -300,17 +402,17 @@ export default function HesaplarPage() {
 
         <div className="md:col-span-8 lg:col-span-5 ">
           <Label htmlFor="oyunlar" className="mb-1">
-            Oyunlar
+            Oyunlar {data.oyunlar && data.oyunlar.length > 0 && `(${data.oyunlar.length} seçili)`}
           </Label>
           <TagBoxDep
-            key={formKey}
+            ref={multiSelectRef}
             options={gameList}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
               setData((prev) => ({
                 ...prev,
                 oyunlar: value.map((v) => Number(v)),
-              }))
-            }
+              }));
+            }}
             placeholder="Oyun Seçiniz..."
             className="w-full "
             value={data.oyunlar?.map(String) || []}
@@ -319,14 +421,21 @@ export default function HesaplarPage() {
         </div>
 
         <div className="md:col-span-4  lg:col-span-2 xl:col-span-1 content-end">
-          <Button onClick={hesapEkle} variant="outline" size={"lg"}>
-            Ekle
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={hesapEkle} variant="outline" size={"lg"}>
+              {duzenlenenId ? "Güncelle" : "Ekle"}
+            </Button>
+            {duzenlenenId && (
+              <Button onClick={temizle} variant="destructive" size={"lg"}>
+                İptal
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       <hr className="my-8 w-full" />
-      <h3 className="font-bold">PSN Hesapları Listesi</h3>
+      <h3 className="font-bold">PSN Hesapları Listesi ({hesapList.length})</h3>
       <div 
         className="pb-5"
         style={{ width: "100%", height: "500px" }}

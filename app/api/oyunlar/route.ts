@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-// GET - Oyunları listele
+// GET - Oyunları listele (is_deleted false olanlar)
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from('oyunlar')
       .select('*')
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -66,7 +67,8 @@ export async function PUT(request: NextRequest) {
         kac_kisilik: parseInt(updateData.kacKisilik),
         kategori: updateData.kategori,
         ea_playde_mi: updateData.eaPlaydeMi === "1",
-        gorsel: updateData.gorselUrl
+        gorsel: updateData.gorselUrl,
+        updated_at: new Date().toISOString()
       })
       .eq('id', parseInt(id))
       .select()
@@ -83,7 +85,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Oyun sil
+// DELETE - Oyun sil (soft delete)
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -95,7 +97,11 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await supabase
       .from('oyunlar')
-      .delete()
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', parseInt(id));
 
     if (error) throw error;

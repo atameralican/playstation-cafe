@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { showToast } from "@/components/ui/alertDep";
 
-// GET - Hesaplar listele (oyun detayları ile)
+// GET - Hesaplar listele (oyun detayları ile, is_deleted false olanlar)
 export async function GET() {
   try {
     const { data: hesaplar, error: hesapError } = await supabase
       .from("hesaplar")
       .select("*")
+      .eq("is_deleted", false)
       .order("mail", { ascending: false });
 
     if (hesapError) throw hesapError;
@@ -90,6 +91,78 @@ export async function POST(request: NextRequest) {
         error: "Hesap eklenemedi",
         details: error,
       },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT - Hesap güncelle
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("hesaplar")
+      .update({
+        mail: updateData.mail,
+        mail_sifre: updateData.mail_sifre || null,
+        kullanici_adi: updateData.kullanici_adi,
+        ea_play_varmi: updateData.ea_play_varmi === true || updateData.ea_play_varmi === "1",
+        ea_play_alinma_tarihi: updateData.ea_play_alinma_tarihi || null,
+        ea_play_bitis_tarihi: updateData.ea_play_bitis_tarihi || null,
+        oyunlar: updateData.oyunlar || [],
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parseInt(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Hesap güncelleme hatası:", error);
+    showToast(`Güncelleme hatası: ${error}`, "error");
+    return NextResponse.json(
+      {
+        error: "Hesap güncellenemedi",
+        details: error,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Hesap sil (soft delete)
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from("hesaplar")
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parseInt(id));
+
+    if (error) throw error;
+    return NextResponse.json({ message: "Hesap silindi" });
+  } catch (error) {
+    console.error("Hesap silme hatası:", error);
+    showToast(`Silme hatası: ${error}`, "error");
+    return NextResponse.json(
+      { error: "Hesap silinemedi" },
       { status: 500 }
     );
   }

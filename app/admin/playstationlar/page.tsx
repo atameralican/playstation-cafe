@@ -18,7 +18,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { TagBoxDep } from "@/components/ui/custom/tagBoxDep";
+import { MultiSelectRef, TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
 
@@ -63,12 +63,13 @@ export default function PlaystationlarPage() {
   const { serviseGit } = useServiceHook();
   const { theme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const [cihazList, setCihazList] = useState<Cihaz[]>([]);
   const [hesapList, setHesapList] = useState<
     { label: string; value: string }[]
   >([]);
-  const [formKey, setFormKey] = useState(0); // TagBox'ı resetlemek için
   const [availableGames, setAvailableGames] = useState<OyunOption[]>([]); // Hesaplardaki oyunlar
+   const multiSelectRef = useRef<MultiSelectRef>(null);
   const [data, setData] = useState<Partial<Cihaz>>({
     cihaz_turu: "PS4",
     seri_no: "",
@@ -94,7 +95,9 @@ export default function PlaystationlarPage() {
       // Hiçbir hesap seçili değilse oyun listesini temizle
       setAvailableGames([]);
       setData(prev => ({ ...prev, yuklu_oyunlar: [] }));
-      setFormKey(prev => prev + 1);
+         if (multiSelectRef.current) {
+      multiSelectRef.current.clear();
+    }
     }
   }, [data.acilis_hesabi, data.ikinci_hesap]);
 
@@ -111,7 +114,10 @@ export default function PlaystationlarPage() {
       yuklu_oyunlar: [],
     });
     setAvailableGames([]);
-    setFormKey(prev => prev + 1);
+     setDuzenlenenId(null);
+       if (multiSelectRef.current) {
+      multiSelectRef.current.clear();
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -181,8 +187,13 @@ export default function PlaystationlarPage() {
           setAvailableGames(oyunlar || []);
           
           // Mevcut seçili oyunları temizle (yeni hesaptaki oyunlar değişmiş olabilir)
-          setData(prev => ({ ...prev, yuklu_oyunlar: [] }));
-          setFormKey(prev => prev + 1);
+       
+    if (!duzenlenenId) {
+         setData(prev => ({ ...prev, yuklu_oyunlar: [] }));
+             if (multiSelectRef.current) {
+      multiSelectRef.current.clear();
+    }
+    }
           
           if (oyunlar && oyunlar.length > 0) {
             showToast(`${oyunlar.length} oyun bulundu`, "success");
@@ -202,15 +213,43 @@ export default function PlaystationlarPage() {
     }
   };
 
+const cihazDuzenle = (cihaz: Cihaz) => {
+    setDuzenlenenId(cihaz.id);
+    setData({
+
+       cihaz_turu: cihaz.cihaz_turu,
+        seri_no: cihaz.seri_no || "",
+        acilis_hesabi: cihaz.acilis_hesabi || "",
+        ikinci_hesap: cihaz.ikinci_hesap || "",
+        kol_iki_mail: cihaz.kol_iki_mail || "",
+        kasa_tipi: cihaz.kasa_tipi || "",
+        aciklama: cihaz.aciklama || "",
+        cihaz_fotograf: cihaz.cihaz_fotograf || "",
+        yuklu_oyunlar: cihaz.yuklu_oyunlar || [],
+    });
+    if (multiSelectRef.current) {
+    let selectOyunlar:string[]=[]
+    if (cihaz.yuklu_oyunlar?.[0]) {
+       selectOyunlar=cihaz.yuklu_oyunlar.map((x)=>x.toString())
+    }else{
+      selectOyunlar=[]
+    }
+      multiSelectRef.current.setSelectedValues(selectOyunlar);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+
+
   const cihazEkle = async () => {
     if (!data.cihaz_turu || !data.kasa_tipi) {
       showToast("Lütfen cihaz türü ve kasa tipini giriniz.", "error");
       return;
     }
-    await serviseGit({
-      url: "/api/cihazlar",
-      method: "POST",
-      body: {
+   const method = duzenlenenId ? "PUT" : "POST";
+    const body = duzenlenenId 
+      ? { id: duzenlenenId, ...data } 
+      : {
         cihaz_turu: data.cihaz_turu,
         seri_no: data.seri_no,
         acilis_hesabi: data.acilis_hesabi,
@@ -220,18 +259,24 @@ export default function PlaystationlarPage() {
         aciklama: data.aciklama,
         cihaz_fotograf: data.cihaz_fotograf,
         yuklu_oyunlar: data.yuklu_oyunlar || [],
-      },
+      };
+      await serviseGit({
+      url: "/api/cihazlar",
+      method: method,
+      body: body,
       onSuccess: () => {
-        showToast("Cihaz eklendi!", "success");
+        showToast(
+                  duzenlenenId ? "Cihaz güncellendi!" : "Cihaz eklendi!",
+                  "success"
+                );
         temizle();
         getCihazlar();
       },
       onError: (error) => {
-        showToast(`Ekleme hatası: ${error.message}`, "error");
-        console.log("api/cihazlar-POST: ", error.message);
-      },
-    });
-  };
+        showToast(`${duzenlenenId ? "Güncelleme" : "Ekleme"} hatası: ${error.message}`, "error");
+              },
+            });
+          };
 
   const cihazSil = async (id: number) => {
     if (!id) {
@@ -292,6 +337,35 @@ export default function PlaystationlarPage() {
       width: 60,
       // pinned: "right",
     },
+     {
+          headerName: "İşlemler",
+          cellRenderer: (params: { data: Cihaz }) => {
+            return (
+              <div className="flex items-center justify-center gap-1 h-full">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => cihazDuzenle(params.data)}
+                >
+                  ✏️
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => cihazSil(params.data.id)}
+                >
+                  🗑️
+                </Button>
+              </div>
+            );
+          },
+          width: 100,
+          pinned: "right",
+          sortable: false,
+          filter: false,
+        },
   ];
 
   const defaultColDef: ColDef = {
@@ -416,7 +490,7 @@ export default function PlaystationlarPage() {
             Yüklü Oyunlar {availableGames.length > 0 && `(${availableGames.length} oyun mevcut)`}
           </Label>
           <TagBoxDep
-            key={formKey}
+            ref={multiSelectRef}
             options={availableGames}
             onValueChange={(value) =>
               setData((prev) => ({
@@ -489,14 +563,21 @@ export default function PlaystationlarPage() {
           </div>
         </div>
         <div className="md:col-span-6  lg:col-span-2 xl:col-span-1 content-end">
-          <Button onClick={cihazEkle} variant="outline">
-            Ekle
-          </Button>
+          <div className="flex gap-2">
+                      <Button onClick={cihazEkle} variant="outline" size={"lg"}>
+                        {duzenlenenId ? "Güncelle" : "Ekle"}
+                      </Button>
+                      {duzenlenenId && (
+                        <Button onClick={temizle} variant="destructive" size={"lg"}>
+                          İptal
+                        </Button>
+                      )}
+                    </div>
         </div>
       </div>
 
       <hr className="my-8 w-full" />
-      <h3 className="font-bold">Playstation (Cihaz) Listesi</h3>
+      <h3 className="font-bold">Playstation (Cihaz) Listesi ({cihazList.length})</h3>
       <div 
         className="pb-5"
         style={{ width: "100%", height: "500px" }}
