@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { MultiSelectRef, TagBoxDep } from "@/components/ui/custom/tagBoxDep";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
+import { Pencil } from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -325,18 +326,7 @@ const cihazDuzenle = (cihaz: Cihaz) => {
       width: 150 
     },
     { field: "aciklama", headerName: "Açıklama" },
-    {
-      headerName: "Sil",
-      cellRenderer: (params: { data: Cihaz }) => {
-        return (
-          <div className="flex items-center justify-center w-full h-full">
-            <DeleteAlertModal onClick={() => cihazSil(params.data.id)} />
-          </div>
-        );
-      },
-      width: 60,
-      // pinned: "right",
-    },
+    
      {
           headerName: "İşlemler",
           cellRenderer: (params: { data: Cihaz }) => {
@@ -348,16 +338,11 @@ const cihazDuzenle = (cihaz: Cihaz) => {
                   className="h-8 w-8"
                   onClick={() => cihazDuzenle(params.data)}
                 >
-                  ✏️
+                  <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => cihazSil(params.data.id)}
-                >
-                  🗑️
-                </Button>
+                <DeleteAlertModal 
+              onClick={() => cihazSil(params.data.id)}
+            />
               </div>
             );
           },
@@ -369,7 +354,8 @@ const cihazDuzenle = (cihaz: Cihaz) => {
   ];
 
   const defaultColDef: ColDef = {
-    flex: 1,
+    sortable: true,
+    resizable: true,
   };
   return (
     <div className="space-y-6">
@@ -586,10 +572,18 @@ const cihazDuzenle = (cihaz: Cihaz) => {
           theme={getAgGridTheme(theme === "dark")}
           rowData={cihazList}
           columnDefs={colDefs}
-          onGridReady={(params) => params.api.autoSizeAllColumns()}
-          onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
-          // defaultColDef={defaultColDef}
-          //rowSelection="single"
+          defaultColDef={defaultColDef}
+          onGridReady={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          onGridSizeChanged={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          rowHeight={68}
+          animateRows={true}
+          pagination={true}
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 20, 50]}
         />
       </div>
     </div>

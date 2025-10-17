@@ -15,6 +15,8 @@ import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
+import { Pencil } from "lucide-react";
+import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -124,16 +126,11 @@ export default function HesaplarPage() {
               className="h-8 w-8"
               onClick={() => hesapDuzenle(params.data)}
             >
-              ✏️
+              <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
+            <DeleteAlertModal 
               onClick={() => hesapSil(params.data.id)}
-            >
-              🗑️
-            </Button>
+            />
           </div>
         );
       },
@@ -145,7 +142,8 @@ export default function HesaplarPage() {
   ];
 
   const defaultColDef: ColDef = {
-    flex: 1,
+    sortable: true,
+    resizable: true,
   };
 
   // ========== SERVICE ==============
@@ -445,8 +443,17 @@ export default function HesaplarPage() {
           rowData={hesapList}
           columnDefs={colDefs}
           defaultColDef={defaultColDef}
-          //onGridReady={(params) => params.api.autoSizeAllColumns()}
-          //onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
+          onGridReady={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          onGridSizeChanged={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          rowHeight={68}
+          animateRows={true}
+          pagination={true}
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 20, 50]}
         />
       </div>
     </div>

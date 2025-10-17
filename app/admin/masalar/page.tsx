@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
 import type { Masa, CihazObject, TelevizionObject, OyunObject } from "@/lib/types/masalar";
+import { Pencil } from "lucide-react";
+import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -247,41 +249,35 @@ function Masalar() {
       minWidth: 200,
     },
     {
-      headerName: "Düzenle",
+      headerName: "İşlemler",
       cellRenderer: (params: { data: Masa }) => {
         return (
-          <div className="flex items-center justify-center w-full h-full">
+          <div className="flex items-center justify-center gap-1 h-full">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => masaDuzenle(params.data)}
             >
-              ✏️
+              <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </Button>
+            <DeleteAlertModal 
+              onClick={() => masaSilBaslat(params.data.id)}
+            />
           </div>
         );
       },
       width: 100,
+      pinned: "right",
+      sortable: false,
+      filter: false,
     },
-    {
-      headerName: "Sil",
-      cellRenderer: (params: { data: Masa }) => {
-        return (
-          <div className="flex items-center justify-center w-full h-full">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => masaSilBaslat(params.data.id)}
-            >
-              🗑️
-            </Button>
-          </div>
-        );
-      },
-      width: 80,
-    },
+   
   ];
-
+const defaultColDef: ColDef = {
+    sortable: true,
+    resizable: true,
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -436,8 +432,18 @@ function Masalar() {
           theme={getAgGridTheme(theme === "dark")}
           rowData={masaList}
           columnDefs={colDefs}
-          onGridReady={(params) => params.api.autoSizeAllColumns()}
-          onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
+          defaultColDef={defaultColDef}
+          onGridReady={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          onGridSizeChanged={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          rowHeight={68}
+          animateRows={true}
+          pagination={true}
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 20, 50]}
         />
       </div>
 

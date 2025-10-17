@@ -20,6 +20,7 @@ import { showToast } from "@/components/ui/alertDep";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
+import { Pencil } from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -176,9 +177,9 @@ export default function TelevizyonlarPage() {
 
   // ========== DATAGRID ==============
   const colDefs: ColDef<TV>[] = [
-    { field: "marka", headerName: "Marka", filter: true, minWidth: 150 },
+    { field: "marka", minWidth:150, headerName: "Marka", filter: true, },
     { field: "model", headerName: "Model", filter: false, minWidth: 150 },
-    { field: "seriNo", headerName: "Seri No", filter: false, minWidth: 200 },
+    { field: "seriNo", minWidth:250,  headerName: "Seri No", filter: false, },
     {
       field: "boyut",
       headerName: "Boyut",
@@ -190,39 +191,37 @@ export default function TelevizyonlarPage() {
       filter: true,
     },
     { field: "ariza", headerName: "Arıza" },
-    { field: "aciklama", headerName: "Açıklama", minWidth: 200 },
-    {
-      headerName: "Düzenle",
+    { field: "aciklama", headerName: "Açıklama", minWidth: 250 },
+     {
+      headerName: "İşlemler",
       cellRenderer: (params: { data: TV }) => {
         return (
-          <div className="flex items-center justify-center w-full h-full">
+          <div className="flex items-center justify-center gap-1 h-full">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/20"
               onClick={() => tvDuzenle(params.data)}
             >
-              ✏️
+              <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </Button>
+            <DeleteAlertModal 
+              onClick={() => tvSil(params.data.id)}
+            />
           </div>
         );
       },
-      width: 80,
+      width: 100,
+      pinned: "right",
+      sortable: false,
+      filter: false,
     },
-    {
-      headerName: "Sil",
-      cellRenderer: (params: { data: TV }) => {
-        return (
-          <div className="flex items-center justify-center w-full h-full">
-            <DeleteAlertModal onClick={() => tvSil(params.data.id)} />
-          </div>
-        );
-      },
-      width: 60,
-    },
+    
   ];
 
   const defaultColDef: ColDef = {
-    flex: 1,
+    sortable: true,
+    resizable: true,
   };
 
   return (
@@ -414,16 +413,23 @@ export default function TelevizyonlarPage() {
 
       <hr className="my-8 w-full" />
       <h3 className="font-bold">TV Listesi ({tvList.length})</h3>
-      <div 
-        className="pb-5"
-        style={{ width: "100%", height: "500px" }}
-      >
+      <div className="pb-5" style={{ width: "100%", height: "500px" }}>
         <AgGridReact
           theme={getAgGridTheme(theme === "dark")}
           rowData={tvList}
           columnDefs={colDefs}
-          onGridReady={(params) => params.api.autoSizeAllColumns()}
-          onGridSizeChanged={(params) => params.api.autoSizeAllColumns()}
+          defaultColDef={defaultColDef}
+          onGridReady={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          onGridSizeChanged={(params) => {
+            params.api.sizeColumnsToFit();
+          }}
+          rowHeight={68}
+          animateRows={true}
+          pagination={true}
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 20, 50]}
         />
       </div>
     </div>

@@ -278,7 +278,6 @@ export default function OyunlarPage() {
             </Button>
             <DeleteAlertModal 
               onClick={() => oyunSil(params.data.id)}
-              
             />
           </div>
         );
