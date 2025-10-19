@@ -74,10 +74,21 @@ export const useServiceHook = () => {
 
         const response = await fetch(url, fetchOptions);
 
+        // Response'dan mesajı al
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
         if (!response.ok) {
-          throw new Error(
-            `HTTP ${response.status}: ${response.statusText}`
-          );
+          try {
+            const errorData = await response.json();
+            // API'den gelen error mesajını kullan
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // JSON parse edilemezse default mesajı kullan
+          }
+          
+          throw new Error(errorMessage);
         }
 
         const data = await response.json() as T;

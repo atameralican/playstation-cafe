@@ -14,17 +14,38 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "@/public/logo.png"
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export function SidebarAdmin({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+      
+      if (response.ok) {
+        toast.success('Çıkış yapıldı')
+        router.push('/login')
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      toast.error('Bir hata oluştu')
+    }
+  }
+
   const links = [
-        {
+    {
       label: "Oyunlar",
       href: "/admin/oyunlar",
       icon: (
         <IconPacman className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
-       {
+    {
       label: "PSN Hesapları",
       href: "/admin/hesaplar",
       icon: (
@@ -38,8 +59,6 @@ export function SidebarAdmin({ children }: { children: React.ReactNode }) {
         <IconDeviceGamepad2 className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
- 
-
     {
       label: "Televizyonlar",
       href: "/admin/televizyonlar",
@@ -54,14 +73,8 @@ export function SidebarAdmin({ children }: { children: React.ReactNode }) {
         <IconNumber className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
-    {
-      label: "Logout",
-      href: "/logout",
-      icon: (
-        <IconArrowLeft className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
-      ),
-    },
   ];
+  
   const [open, setOpen] = useState(false);
 
   return (
@@ -79,13 +92,26 @@ export function SidebarAdmin({ children }: { children: React.ReactNode }) {
               {links.map((link, idx) => (
                 <SidebarLink key={idx} link={link} />
               ))}
+              
+              {/* Logout butonu - click handler ile */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-start gap-2 group/sidebar py-2 px-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+              >
+                <IconArrowLeft className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+                {open && (
+                  <span className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0">
+                    Çıkış Yap
+                  </span>
+                )}
+              </button>
             </div>
           </div>
           <div>
             <SidebarLink
               link={{
                 label: "Admin User",
-                href: "/admin/profile",
+                href: "/admin",
                 icon: (
                   <img
                     src="https://assets.aceternity.com/manu.png"
@@ -110,7 +136,7 @@ export const Logo = () => {
     <a
       href="/admin"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
-      >
+    >
       <Image src={logo} alt="Deplasman Bay Bayan Playstation Salonu Kırşehir" width={50} height={50} className="object-cover scale-100" />
       <motion.span
         initial={{ opacity: 0 }}
@@ -130,7 +156,6 @@ export const LogoIcon = () => {
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
     >
       <Image src={logo} alt="Deplasman Bay Bayan Playstation Salonu Kırşehir" width={30} height={30} />
-     
     </Link>
   );
 };

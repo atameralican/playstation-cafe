@@ -5,14 +5,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// TypeScript için type tanımı
-export type Oyun = {
-  id: string
-  created_at: string
-  oyun_adi: string
-  cihaz_turu: string
-  kac_kisilik: number
-  kategori: string
-  ea_playde_mi: boolean
-  gorsel_url: string | null
+// Admin kontrolü için
+export async function isAdminEmail(email: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .single()
+
+  return !error && !!data
 }
