@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAdmin } from "@/lib/apiAuth";
 import type { OyunObject } from "@/lib/types/masalar";
 
 // GET - Masalar listele
@@ -22,8 +23,11 @@ export async function GET() {
   }
 }
 
-// POST - Yeni masa ekle
+// POST - Yeni masa ekle (SADECE ADMIN)
 export async function POST(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
 
@@ -127,8 +131,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Masa güncelle
+// PUT - Masa güncelle (SADECE ADMIN)
 export async function PUT(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -231,6 +238,39 @@ export async function PUT(request: NextRequest) {
         error: "Masa güncellenemedi",
         details: error,
       },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Masa sil (soft delete) (SADECE ADMIN)
+export async function DELETE(request: NextRequest) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from("masalar")
+      .update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parseInt(id));
+
+    if (error) throw error;
+    return NextResponse.json({ message: "Masa silindi" });
+  } catch (error) {
+    console.error("Masa silme hatası:", error);
+    return NextResponse.json(
+      { error: "Masa silinemedi" },
       { status: 500 }
     );
   }
