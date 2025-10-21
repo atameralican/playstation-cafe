@@ -57,7 +57,7 @@ function GameAddPageCard({
                   <Text as="div" size="2" color="gray">
                     {oyun.kategori}
                   </Text>
-                  <Badge color="indigo" className="uppercase">
+                  <Badge color="indigo" >
                     {oyun.cihaz_turu}
                   </Badge>
                   <Badge color="cyan">{oyun.kac_kisilik} Kişi</Badge>
