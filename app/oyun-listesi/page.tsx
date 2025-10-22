@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { ShineBorder } from '@/components/ui/shine-border'
 import { Input } from '@/components/ui/input'
+import ToogleGame from './toogleGame'
 
 function OyunListesiPage() {
   return (
@@ -15,52 +16,28 @@ function OyunListesiPage() {
         <ShineBorder borderWidth={2} shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} />
         <CardHeader>
           <CardTitle>  
-          
+          <div className='flex flex-row justify-between items-center'>
               <Input
                 type="text"
                 placeholder="Oyun adı yazın..."
                //value={aramaMetni}
                //onChange={(e) => setAramaMetni(e.target.value)}
                 className="lg:w-2/4 w-full "
-              /></CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-          <CardAction>
-            <Button variant="link">Sign Up</Button>
-            <Button variant="link">Sign Up</Button>
-            <Button variant="link">Sign Up</Button>
-            <Button variant="link">Sign Up</Button>
-          </CardAction>
+              />
+               <ToogleGame/></div>
+              </CardTitle>
+          {/* <CardDescription>
+            Arama yapacağınız oyuna
+          </CardDescription> */}
+          {/* <CardAction>
+            <ToogleGame/>
+          </CardAction> */}
         </CardHeader>
         <hr />
         <CardContent>
           <BentoGridDemo />
         </CardContent>
-             {/* <BorderBeam
-        duration={6}
-        size={400}
-        className="from-transparent via-red-500 to-transparent"
-      />
-      <BorderBeam
-        duration={6}
-        delay={3}
-        size={400}
-        borderWidth={2}
-        className="from-transparent via-blue-500 to-transparent"
-      />
-             <BorderBeam
-        duration={5}
-        size={500}
-        className="from-transparent via-red-500 to-transparent"
-      />
-      <BorderBeam
-        duration={5}
-        delay={5}
-        size={500}
-        borderWidth={2}
-        className="from-transparent via-blue-500 to-transparent"
-      /> */}
+            
       </Card>
 
     </div>
