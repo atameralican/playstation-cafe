@@ -143,7 +143,7 @@ function OyunListesiPage() {
               <div className="flex md:flex-row flex-col gap-4 justify-between items-center w-full">
                 <Input
                   type="text"
-                  placeholder="Oyun adı yazın..."
+                  placeholder="Oyun adı..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="md:w-1/4 w-full"

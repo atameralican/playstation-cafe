@@ -32,7 +32,8 @@ export function MainNavbar({  navItems }) {
         {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
-            <NavbarLogo href="/" name="Dep" />
+                      <NavbarLogo logo={logo} alt="Deplasman Bay Bayan Playstation Salonu Kırşehir" href="/" name="" />
+
             <ThemeToggleButton />
             <MobileNavToggle
               isOpen={isMobileMenuOpen}
