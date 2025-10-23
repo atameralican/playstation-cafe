@@ -258,7 +258,7 @@ function OyunListesiPage() {
                     ps5_masalar={item.ps5_masalar}
                     description={item?.aciklama}
                     className={i % 5 === 0 ? "md:col-span-2" : ""}
-                  />
+                  /> 
                 ))}
               </BentoGrid>
               {totalPages > 1 && (
