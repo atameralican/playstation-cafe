@@ -137,12 +137,14 @@ function OyunListesiPage() {
           borderWidth={2}
           shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
         />
-        <CardHeader>
+       {oyunlar.length>0&& <>
+       <CardHeader>
           <CardTitle>
             <div className="flex flex-col gap-4 w-full">
               <div className="flex md:flex-row flex-col gap-4 justify-between items-center w-full">
                 <Input
                   type="text"
+                  autoFocus
                   placeholder="Oyun adı..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -237,7 +239,7 @@ function OyunListesiPage() {
             </div>
           </CardTitle>
         </CardHeader>
-        <hr />
+        <hr /></>}
         <CardContent>
           {filteredGames.length > 0 ? (
             <>
