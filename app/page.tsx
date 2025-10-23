@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="container mx-auto p-8 ">
       <h1 className="mb-4 text-center text-3xl font-bold">
-        Check the navbar at the top of the container
+        Check the navbar at the top of the container - develop
       </h1>
       <p className="mb-10 text-center text-sm text-zinc-500">
         For demo purpose we have kept the position as{" "}
