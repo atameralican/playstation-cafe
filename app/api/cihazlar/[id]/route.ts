@@ -20,6 +20,7 @@ export async function PUT(
         kol_iki_mail: body.kol_iki_mail || null,
         kasa_tipi: body.kasa_tipi || null,
         aciklama: body.aciklama || null,
+        hafiza: body.hafiza || null,
         cihaz_fotograf: body.cihaz_fotograf || null,
         yuklu_oyunlar: body.yuklu_oyunlar || [],
         updated_at: new Date().toISOString(),
