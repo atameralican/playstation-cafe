@@ -223,9 +223,7 @@ export default function HesaplarPage() {
   const hesapEkle = async () => {
     if (
       !data.mail ||
-      !data.kullanici_adi ||
-      !data.oyunlar ||
-      data.oyunlar.length === 0
+      !data.kullanici_adi 
     ) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
