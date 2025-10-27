@@ -36,6 +36,7 @@ interface Cihaz {
   kol_iki_mail?: string;
   kasa_tipi?: string;
   aciklama?: string;
+  hafiza?: string;
   cihaz_fotograf?: string;
   yuklu_oyunlar?: number[];
   ekstra_1?: string;
@@ -79,6 +80,7 @@ export default function PlaystationlarPage() {
     kol_iki_mail: "",
     kasa_tipi: "",
     aciklama: "",
+    hafiza: "",
     cihaz_fotograf: "",
     yuklu_oyunlar: [],
   });
@@ -111,6 +113,7 @@ export default function PlaystationlarPage() {
       kol_iki_mail: "",
       kasa_tipi: "",
       aciklama: "",
+      hafiza: "",
       cihaz_fotograf: "",
       yuklu_oyunlar: [],
     });
@@ -225,6 +228,7 @@ const cihazDuzenle = (cihaz: Cihaz) => {
         kol_iki_mail: cihaz.kol_iki_mail || "",
         kasa_tipi: cihaz.kasa_tipi || "",
         aciklama: cihaz.aciklama || "",
+        hafiza: cihaz.hafiza || "",
         cihaz_fotograf: cihaz.cihaz_fotograf || "",
         yuklu_oyunlar: cihaz.yuklu_oyunlar || [],
     });
@@ -258,6 +262,7 @@ const cihazDuzenle = (cihaz: Cihaz) => {
         kol_iki_mail: data.kol_iki_mail,
         kasa_tipi: data.kasa_tipi,
         aciklama: data.aciklama,
+        hafiza: data.hafiza,
         cihaz_fotograf: data.cihaz_fotograf,
         yuklu_oyunlar: data.yuklu_oyunlar || [],
       };
@@ -303,6 +308,7 @@ const cihazDuzenle = (cihaz: Cihaz) => {
     { field: "cihaz_turu", headerName: "Cihaz Türü", filter: true },
     { field: "kasa_tipi", headerName: "Kasa Tipi", filter: true },
     { field: "seri_no", headerName: "Seri No", filter: false, width: 250 },
+    { field: "hafiza", headerName: "Hafıza" ,filter:true},
     {
       minWidth: 250,
       field: "acilis_hesabi",
@@ -419,6 +425,23 @@ const cihazDuzenle = (cihaz: Cihaz) => {
               }))
             }
             placeholder="Seri No"
+          />
+        </div>
+        <div className="md:col-span-6 lg:col-span-4 xl:col-span-4">
+          <Label htmlFor="hafiza" className="mb-1">
+            Hafiza
+          </Label>
+          <Input
+            type="text"
+            id="hafiza"
+            value={data.hafiza}
+            onChange={(e) =>
+              setData((prev) => ({
+                ...prev,
+                hafiza: e.target.value,
+              }))
+            }
+            placeholder="Cihaz Hafızası"
           />
         </div>
         <div className="md:col-span-6  lg:col-span-6 xl:col-span-4">

@@ -62,6 +62,16 @@ export default function HesaplarPage() {
     oyunlar: [],
   });
 
+useEffect(() => {
+  //ea play false çekildiğinde tarihleri boşalt
+  if (!data.ea_play_varmi) {
+    setData(prev=>({...prev,
+      ea_play_alinma_tarihi:null,
+      ea_play_bitis_tarihi:null
+    }))
+  }
+}, [data.ea_play_varmi]);
+
   // sayfa açılır açılmaz veriler gelsin
   useEffect(() => {
     getHesaplar();
@@ -221,18 +231,20 @@ export default function HesaplarPage() {
 
   // Yeni hesap ekleme veya güncelleme
   const hesapEkle = async () => {
-    if (
-      !data.mail ||
-      !data.kullanici_adi ||
-      !data.oyunlar ||
-      data.oyunlar.length === 0
-    ) {
+    if (!data.mail || !data.kullanici_adi) {
       showToast("Lütfen tüm zorunlu alanları doldurun.", "error");
       return;
     }
 
+    if (
+      data.ea_play_varmi &&!data.ea_play_bitis_tarihi
+    ) {
+      showToast("Lütfen EA Play bitiş tarihi giriniz.", "error");
+      return;
+    }
+
     const method = duzenlenenId ? "PUT" : "POST";
-    
+
     // Body'yi hazırla
     const requestBody = {
       mail: data.mail,
@@ -240,15 +252,19 @@ export default function HesaplarPage() {
       mail_sifre: data.mail_sifre || null,
       ea_play_varmi: data.ea_play_varmi,
       ea_play_alinma_tarihi:
-          data.ea_play_alinma_tarihi?.toLocaleDateString().split("T")[0] ||
-          null,
-        ea_play_bitis_tarihi:
-          data.ea_play_bitis_tarihi?.toLocaleDateString().split("T")[0] || null,
-        oyunlar: data.oyunlar,
+        data.ea_play_varmi && data.ea_play_alinma_tarihi
+          ? formatDateForDB(data.ea_play_alinma_tarihi)
+          : null,
+
+      ea_play_bitis_tarihi:
+        data.ea_play_varmi && data.ea_play_bitis_tarihi
+          ? formatDateForDB(data.ea_play_bitis_tarihi)
+          : null,
+      oyunlar: data.oyunlar,
     };
-    
-    const body = duzenlenenId 
-      ? { id: duzenlenenId, ...requestBody } 
+
+    const body = duzenlenenId
+      ? { id: duzenlenenId, ...requestBody }
       : requestBody;
 
     await serviseGit({
@@ -264,7 +280,10 @@ export default function HesaplarPage() {
         getHesaplar();
       },
       onError: (error) => {
-        showToast(`${duzenlenenId ? "Güncelleme" : "Ekleme"} hatası: ${error.message}`, "error");
+        showToast(
+          `${duzenlenenId ? "Güncelleme" : "Ekleme"} hatası: ${error.message}`,
+          "error"
+        );
       },
     });
   };
@@ -284,6 +303,15 @@ export default function HesaplarPage() {
     });
   };
 
+
+
+
+  function formatDateForDB(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
