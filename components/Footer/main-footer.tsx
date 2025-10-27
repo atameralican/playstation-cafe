@@ -1,6 +1,7 @@
 import { Github, Instagram, Facebook } from "lucide-react";
 import Link from "next/link";
-
+import Image from 'next/image'
+import logo from '@/public/logo.png'
 export default function MainFooter() {
   return (
     <footer className="">
@@ -11,7 +12,13 @@ export default function MainFooter() {
               href="/"
               className="flex items-center gap-2 text-2xl  hover:text-blue-400 transition-colors"
             >
-              <span>Logo</span>
+              <Image
+                    src={logo}
+                    alt="Deplasman Playstation"
+                    width={80}
+                    height={80}
+                    className="rounded-xl"
+                  />
             </Link>
           </div>
 
