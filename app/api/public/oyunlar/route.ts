@@ -9,27 +9,25 @@ interface MasaBilgisi {
 interface OyunDetay {
   id: number;
   oyun_adi: string;
-  cihaz_turu: string;
   kac_kisilik: number;
   kategori: string;
   ea_playde_mi: boolean;
   gorsel: string | null;
-  aciklama?: string;
   ps3_masalar: MasaBilgisi[];
   ps4_masalar: MasaBilgisi[];
   ps5_masalar: MasaBilgisi[];
 }
-
-// GET - Tüm oyunları masa bilgileriyle beraber getir (PUBLIC - Herkes Erişebilir)
+// Bu işlem biraz yavaş oluyor ileride bu işlemi supabasede viewle kontrol edilebilir. veya maslaar kaydedilirken de bu işlem yapılarak daha hızlı sonuç alınabilir. 
+// GET - Tüm oyunları masa bilgileriyle beraber getir 
 export async function GET() {
   try {
+
     // 1. Tüm oyunları al
     const { data: oyunlar, error: oyunError } = await supabase
       .from("oyunlar")
-      .select("*")
+      .select("id,oyun_adi,kac_kisilik,kategori,ea_playde_mi,gorsel")
       .eq("is_deleted", false)
       .order("oyun_adi", { ascending: true });
-
     if (oyunError) throw oyunError;
 
     if (!oyunlar || oyunlar.length === 0) {
@@ -38,9 +36,8 @@ export async function GET() {
 
     // 2. Tüm masaları al (cihaz bilgileriyle)
     const { data: masalar, error: masaError } = await supabase
-      .from("masalar")
-      .select("*")
-      .eq("is_deleted", false);
+      .from("vw_masalar_aktif")
+      .select("id, masa_no, cihaz_turu, cihaz_yuklu_oyunlar, cihaz2_turu, cihaz2_yuklu_oyunlar");
 
     if (masaError) throw masaError;
 
@@ -53,9 +50,9 @@ export async function GET() {
       // Her masayı kontrol et
       masalar?.forEach((masa) => {
         // Cihaz 1'i kontrol et
-        if (masa.cihaz?.yuklu_oyunlar?.includes(oyun.id)) {
-          const cihazTuru = masa.cihaz.cihaz_turu?.toLowerCase() || "";
-          
+        if (masa?.cihaz_yuklu_oyunlar?.includes(oyun.id)) {
+          const cihazTuru = masa?.cihaz_turu?.toLowerCase() || "";
+
           if (cihazTuru.includes("ps3")) {
             ps3Masalar.push({ masa_no: masa.masa_no, id: masa.id });
           } else if (cihazTuru.includes("ps5")) {
@@ -66,9 +63,9 @@ export async function GET() {
         }
 
         // Cihaz 2'yi kontrol et (varsa)
-        if (masa.cihaz2?.yuklu_oyunlar?.includes(oyun.id)) {
-          const cihazTuru = masa.cihaz2.cihaz_turu?.toLowerCase() || "";
-          
+        if (masa?.cihaz2_yuklu_oyunlar?.includes(oyun.id)) {
+          const cihazTuru = masa?.cihaz2_turu?.toLowerCase() || "";
+
           if (cihazTuru.includes("ps3")) {
             ps3Masalar.push({ masa_no: masa.masa_no, id: masa.id });
           } else if (cihazTuru.includes("ps5")) {

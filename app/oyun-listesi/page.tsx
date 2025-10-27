@@ -129,7 +129,6 @@ function OyunListesiPage() {
     startIndex,
     startIndex + itemsPerPage
   );
-
   return (
     <div>
       <Card className="relative w-full overflow-hidden">
@@ -256,7 +255,6 @@ function OyunListesiPage() {
                     ps3_masalar={item.ps3_masalar}
                     ps4_masalar={item.ps4_masalar}
                     ps5_masalar={item.ps5_masalar}
-                    description={item?.aciklama}
                     className={i % 5 === 0 ? "md:col-span-2" : ""}
                   /> 
                 ))}
