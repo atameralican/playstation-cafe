@@ -1,19 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/apiAuth";
-import type { OyunObject } from "@/lib/types/masalar";
 
 // GET - Masalar listele
 export async function GET() {
   try {
     const { data, error } = await supabase
       .from("masalar")
-      .select("*")
+      .select("id,masa_no,durum,cihaz,cihaz2,televizyon,aciklama,problem")
       .eq("is_deleted", false)
       .order("masa_no", { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json(data);
+
+    // Oyun sayısını hesapla
+    const result = data.map(masa => {
+      const oyunIds = [
+        ...(masa.cihaz?.yuklu_oyunlar || []),
+        ...(masa.cihaz2?.yuklu_oyunlar || [])
+      ];
+      const uniqueOyunIds = [...new Set(oyunIds)];
+      
+      return {
+        ...masa,
+        yuklu_oyun_sayisi: uniqueOyunIds.length
+      };
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Masalar getirilemedi:", error);
     return NextResponse.json(
@@ -31,67 +45,38 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Cihaz 1 bilgilerini al
+    // ✅ Cihaz 1 - Sadece gerekli alanları al
     let cihaz1Object = null;
-    let yukluOyunlar: OyunObject[] = [];
-
     if (body.cihaz) {
       const { data: cihazData, error: cihazError } = await supabase
         .from("cihazlar")
-        .select("*")
+        .select("id,yuklu_oyunlar,cihaz_turu,kasa_tipi")
         .eq("id", body.cihaz)
         .single();
 
       if (cihazError) throw cihazError;
       cihaz1Object = cihazData;
-
-      // Cihaz 1'in yüklü oyunlarını al
-      if (cihazData?.yuklu_oyunlar && cihazData.yuklu_oyunlar.length > 0) {
-        const { data: oyunlar1, error: oyunError1 } = await supabase
-          .from("oyunlar")
-          .select("*")
-          .in("id", cihazData.yuklu_oyunlar);
-
-        if (!oyunError1 && oyunlar1) {
-          yukluOyunlar = [...yukluOyunlar, ...oyunlar1];
-        }
-      }
     }
 
-    // Cihaz 2 bilgilerini al (opsiyonel)
+    // ✅ Cihaz 2 - Sadece gerekli alanları al
     let cihaz2Object = null;
     if (body.cihaz2) {
       const { data: cihazData2, error: cihazError2 } = await supabase
         .from("cihazlar")
-        .select("*")
+        .select("id,yuklu_oyunlar,cihaz_turu,kasa_tipi")
         .eq("id", body.cihaz2)
         .single();
 
       if (cihazError2) throw cihazError2;
       cihaz2Object = cihazData2;
-
-      // Cihaz 2'nin yüklü oyunlarını al
-      if (cihazData2?.yuklu_oyunlar && cihazData2.yuklu_oyunlar.length > 0) {
-        const { data: oyunlar2, error: oyunError2 } = await supabase
-          .from("oyunlar")
-          .select("*")
-          .in("id", cihazData2.yuklu_oyunlar);
-
-        if (!oyunError2 && oyunlar2) {
-          // Duplicate oyunları engelle
-          const mevcutOyunIds = new Set(yukluOyunlar.map((o) => o.id));
-          const yeniOyunlar = oyunlar2.filter((o) => !mevcutOyunIds.has(o.id));
-          yukluOyunlar = [...yukluOyunlar, ...yeniOyunlar];
-        }
-      }
     }
 
-    // Televizyon bilgilerini al
+    // ✅ Televizyon - Sadece gerekli alanları al
     let televizyonObject = null;
     if (body.tv) {
       const { data: tvData, error: tvError } = await supabase
         .from("televizyonlar")
-        .select("*")
+        .select("id,marka,boyut")
         .eq("id", body.tv)
         .single();
 
@@ -99,7 +84,7 @@ export async function POST(request: NextRequest) {
       televizyonObject = tvData;
     }
 
-    // Masayı kaydet
+    // ✅ Masayı kaydet (yuklu_oyunlar YOK!)
     const { data, error } = await supabase
       .from("masalar")
       .insert([
@@ -108,24 +93,32 @@ export async function POST(request: NextRequest) {
           cihaz: cihaz1Object,
           cihaz2: cihaz2Object,
           televizyon: televizyonObject,
-          yuklu_oyunlar: yukluOyunlar,
+          // ❌ yuklu_oyunlar: yukluOyunlar, KALDIRILDI!
           aciklama: body.aciklama || null,
           problem: body.problem || null,
           durum: "aktif",
         },
       ])
-      .select()
+      .select("id,masa_no,durum,cihaz,cihaz2,televizyon,aciklama,problem")
       .single();
 
     if (error) throw error;
-    return NextResponse.json(data, { status: 201 });
+
+    // Oyun sayısını hesapla ve ekle
+    const oyunIds = [
+      ...(data.cihaz?.yuklu_oyunlar || []),
+      ...(data.cihaz2?.yuklu_oyunlar || [])
+    ];
+    const result = {
+      ...data,
+      yuklu_oyun_sayisi: [...new Set(oyunIds)].length
+    };
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Masa ekleme hatası:", error);
     return NextResponse.json(
-      {
-        error: "Masa eklenemedi",
-        details: error,
-      },
+      { error: "Masa eklenemedi", details: error },
       { status: 500 }
     );
   }
@@ -144,67 +137,38 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
     }
 
-    // Cihaz 1 bilgilerini al
+    // ✅ Cihaz 1 - Sadece gerekli alanları al
     let cihaz1Object = null;
-    let yukluOyunlar: OyunObject[] = [];
-
     if (updateData.cihaz) {
       const { data: cihazData, error: cihazError } = await supabase
         .from("cihazlar")
-        .select("*")
+        .select("id,yuklu_oyunlar,cihaz_turu,kasa_tipi")
         .eq("id", updateData.cihaz)
         .single();
 
       if (cihazError) throw cihazError;
       cihaz1Object = cihazData;
-
-      // Cihaz 1'in yüklü oyunlarını al
-      if (cihazData?.yuklu_oyunlar && cihazData.yuklu_oyunlar.length > 0) {
-        const { data: oyunlar1, error: oyunError1 } = await supabase
-          .from("oyunlar")
-          .select("*")
-          .in("id", cihazData.yuklu_oyunlar);
-
-        if (!oyunError1 && oyunlar1) {
-          yukluOyunlar = [...yukluOyunlar, ...oyunlar1];
-        }
-      }
     }
 
-    // Cihaz 2 bilgilerini al (opsiyonel)
+    // ✅ Cihaz 2 - Sadece gerekli alanları al
     let cihaz2Object = null;
     if (updateData.cihaz2) {
       const { data: cihazData2, error: cihazError2 } = await supabase
         .from("cihazlar")
-        .select("*")
+        .select("id,yuklu_oyunlar,cihaz_turu,kasa_tipi")
         .eq("id", updateData.cihaz2)
         .single();
 
       if (cihazError2) throw cihazError2;
       cihaz2Object = cihazData2;
-
-      // Cihaz 2'nin yüklü oyunlarını al
-      if (cihazData2?.yuklu_oyunlar && cihazData2.yuklu_oyunlar.length > 0) {
-        const { data: oyunlar2, error: oyunError2 } = await supabase
-          .from("oyunlar")
-          .select("*")
-          .in("id", cihazData2.yuklu_oyunlar);
-
-        if (!oyunError2 && oyunlar2) {
-          // Duplicate oyunları engelle
-          const mevcutOyunIds = new Set(yukluOyunlar.map((o) => o.id));
-          const yeniOyunlar = oyunlar2.filter((o) => !mevcutOyunIds.has(o.id));
-          yukluOyunlar = [...yukluOyunlar, ...yeniOyunlar];
-        }
-      }
     }
 
-    // Televizyon bilgilerini al
+    // ✅ Televizyon - Sadece gerekli alanları al
     let televizyonObject = null;
     if (updateData.tv) {
       const { data: tvData, error: tvError } = await supabase
         .from("televizyonlar")
-        .select("*")
+        .select("id,marka,boyut")
         .eq("id", updateData.tv)
         .single();
 
@@ -212,7 +176,7 @@ export async function PUT(request: NextRequest) {
       televizyonObject = tvData;
     }
 
-    // Masayı güncelle
+    // ✅ Masayı güncelle (yuklu_oyunlar YOK!)
     const { data, error } = await supabase
       .from("masalar")
       .update({
@@ -220,24 +184,32 @@ export async function PUT(request: NextRequest) {
         cihaz: cihaz1Object,
         cihaz2: cihaz2Object,
         televizyon: televizyonObject,
-        yuklu_oyunlar: yukluOyunlar,
+        // ❌ yuklu_oyunlar: yukluOyunlar, KALDIRILDI!
         aciklama: updateData.aciklama || null,
         problem: updateData.problem || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", parseInt(id))
-      .select()
+      .select("id,masa_no,durum,cihaz,cihaz2,televizyon,aciklama,problem")
       .single();
 
     if (error) throw error;
-    return NextResponse.json(data);
+
+    // Oyun sayısını hesapla ve ekle
+    const oyunIds = [
+      ...(data.cihaz?.yuklu_oyunlar || []),
+      ...(data.cihaz2?.yuklu_oyunlar || [])
+    ];
+    const result = {
+      ...data,
+      yuklu_oyun_sayisi: [...new Set(oyunIds)].length
+    };
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Masa güncelleme hatası:", error);
     return NextResponse.json(
-      {
-        error: "Masa güncellenemedi",
-        details: error,
-      },
+      { error: "Masa güncellenemedi", details: error },
       { status: 500 }
     );
   }
