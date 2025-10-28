@@ -14,7 +14,7 @@ import { AlertDialog, Flex, Button as RadixButton } from "@radix-ui/themes";
 import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
-import type { Masa, CihazObject, TelevizionObject, OyunObject } from "@/lib/types/masalar";
+import type { Masa, } from "@/lib/types/masalar";
 import { Pencil } from "lucide-react";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 
@@ -229,15 +229,24 @@ function Masalar() {
       },
       width: 150,
     },
-    {
-      field: "yuklu_oyunlar",
-      headerName: "Toplam Oyun",
-      valueFormatter: (params) => {
-        const oyunlar = params.value;
-        return oyunlar ? `${oyunlar.length} oyun` : "0 oyun";
-      },
-      width: 130,
+    // {
+    //   field: "yuklu_oyunlar",
+    //   headerName: "Toplam Oyun",
+    //   valueFormatter: (params) => {
+    //     const oyunlar = params.value;
+    //     return oyunlar ? `${oyunlar.length} oyun` : "0 oyun";
+    //   },
+    //   width: 130,
+    // },
+     {
+    // ✅ DEĞİŞTİ: yuklu_oyunlar → yuklu_oyun_sayisi
+    field: "yuklu_oyun_sayisi",
+    headerName: "Toplam Oyun",
+    valueFormatter: (params) => {
+      return `${params.value || 0} oyun`;
     },
+    width: 130,
+  },
     {
       field: "aciklama",
       headerName: "Açıklama",
