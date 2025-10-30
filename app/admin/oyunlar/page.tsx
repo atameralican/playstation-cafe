@@ -28,7 +28,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 import { useTheme } from "next-themes";
 import { getAgGridTheme } from "@/lib/agGridTheme";
-
+import { uploadImageToStorage } from "@/lib/uploadToStorage";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface Oyun {
@@ -50,15 +50,17 @@ export default function OyunlarPage() {
     person: "2",
     gameType: "",
     eaMi: "1",
-    gorsel: "",
+    gorselUrl: "", 
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); 
+  const [previewUrl, setPreviewUrl] = useState<string>(""); 
   const [oyunlar, setOyunlar] = useState<Oyun[]>([]);
   const [duzenlenenId, setDuzenlenenId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { serviseGit } = useServiceHook();
   const { theme } = useTheme();
 
-  useEffect(() => {
+   useEffect(() => {
     oyunlariYukle();
   }, []);
 
@@ -74,16 +76,14 @@ export default function OyunlarPage() {
     });
   };
 
-  const handleFileUpload = async (files: File[]) => {
-    let gorselUrl = data?.gorsel;
-
-    if (files.length > 0) {
-      const reader = new FileReader();
-      gorselUrl = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(files[0]);
-      });
-      setData((prev) => ({ ...prev, gorsel: gorselUrl }));
+//dosya secme
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Önizleme için object URL oluştur
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
     }
   };
 
@@ -94,16 +94,20 @@ export default function OyunlarPage() {
       psType: "2",
       person: "2",
       eaMi: "1",
-      gorsel: "",
+      gorselUrl: "",
     });
-
+    setSelectedFile(null);
+    setPreviewUrl("");
     setDuzenlenenId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const oyunDuzenle = (oyun: Oyun) => {
+
+
+
+const oyunDuzenle = (oyun: Oyun) => {
     setDuzenlenenId(oyun.id);
     setData({
       oyunAdi: oyun.oyun_adi,
@@ -111,66 +115,94 @@ export default function OyunlarPage() {
       psType: oyun.cihaz_turu === "ps3" ? "1" : "2",
       person: oyun.kac_kisilik.toString(),
       eaMi: oyun.ea_playde_mi ? "1" : "2",
-      gorsel: oyun.gorsel || "",
+      gorselUrl: oyun.gorsel || "",
     });
-
+    // gösrseli önizleme göster
+    setPreviewUrl(oyun.gorsel || "");
+    setSelectedFile(null);
+    
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const oyunKaydet = async () => {
+const oyunKaydet = async () => {
     if (!data.oyunAdi || !data.gameType) {
       showToast("Lütfen oyun adı ve kategori giriniz!", "error");
       return;
     }
 
-    const oyunData = {
-      oyunAdi: data?.oyunAdi,
-      cihazTuru: data.psType === "1" ? "ps3" : "ps4-ps5",
-      kacKisilik: data.person,
-      kategori: data.gameType,
-      eaPlaydeMi: data.eaMi,
-      gorselUrl: data.gorsel,
-    };
+    let gorselUrl = data.gorselUrl;
 
-    if (duzenlenenId) {
-      // Güncelleme işlemi
-      await serviseGit({
-        url: "/api/oyunlar",
-        method: "PUT",
-        body: { id: duzenlenenId, ...oyunData },
-        onSuccess: () => {
-          showToast("Oyun güncellendi!", "success");
-          formuTemizle();
-          oyunlariYukle();
-        },
-        onError: (error) => {
-          showToast(`Güncelleme hatası: ${error.message}`, "error");
-        },
-      });
-    } else {
-      // Ekleme işlemi
-      await serviseGit({
-        url: "/api/oyunlar",
-        method: "POST",
-        body: oyunData,
-        onSuccess: () => {
-          showToast("Oyun eklendi!", "success");
-          formuTemizle();
-          oyunlariYukle();
-        },
-        onError: (error) => {
-          showToast(`Ekleme hatası: ${error.message}`, "error");
-        },
-      });
+    try {
+      // Yeni dosya seçildiyse Storage'a yükle
+      if (selectedFile) {
+        const uploadedUrl = await uploadImageToStorage(
+          selectedFile,
+          data.oyunAdi,
+          duzenlenenId || undefined
+        );
+
+        if (!uploadedUrl) {
+          showToast("Görsel yüklenemedi!", "error");
+          return;
+        }
+
+        gorselUrl = uploadedUrl;
+      }
+
+      const oyunData = {
+        oyunAdi: data.oyunAdi,
+        cihazTuru: data.psType === "1" ? "ps3" : "ps4-ps5",
+        kacKisilik: data.person,
+        kategori: data.gameType,
+        eaPlaydeMi: data.eaMi,
+        gorselUrl: gorselUrl,
+      };
+
+      if (duzenlenenId) {
+        // Güncelleme
+        await serviseGit({
+          url: "/api/oyunlar",
+          method: "PUT",
+          body: { id: duzenlenenId, ...oyunData },
+          onSuccess: () => {
+            showToast("Oyun güncellendi!", "success");
+            formuTemizle();
+            oyunlariYukle();
+          },
+          onError: (error) => {
+            showToast(`Güncelleme hatası: ${error.message}`, "error");
+          },
+        });
+      } else {
+
+        await serviseGit({
+          url: "/api/oyunlar",
+          method: "POST",
+          body: oyunData,
+          onSuccess: () => {
+            showToast("Oyun eklendi!", "success");
+            formuTemizle();
+            oyunlariYukle();
+          },
+          onError: (error) => {
+            showToast(`Ekleme hatası: ${error.message}`, "error");
+          },
+        });
+      }
+    } catch (error) {
+      showToast("Bir hata oluştu!", "error");
+      console.error(error);
+    } finally {
     }
   };
 
+  // 🗑️ silme
   const oyunSil = async (id: number) => {
     await serviseGit({
       url: `/api/oyunlar?id=${id}`,
       method: "DELETE",
       onSuccess: () => {
-        showToast("Oyun silme işlemi başarılı.", "success");
+        showToast("Oyun silindi!", "success");
         oyunlariYukle();
       },
       onError: (error) => {
@@ -187,7 +219,6 @@ export default function OyunlarPage() {
       cellRenderer: (params: { data: Oyun }) => {
         return (
           <div className="flex items-center gap-3 py-2">
-            {/* Modern görsel container */}
             <div className="relative overflow-hidden rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
               <Image
                 src={params.data.gorsel || defaultImg}
@@ -197,8 +228,6 @@ export default function OyunlarPage() {
                 className="w-12 h-12 object-cover"
               />
             </div>
-            
-            {/* Oyun bilgileri */}
             <div className="flex flex-col">
               <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
                 {params.data.oyun_adi}
@@ -221,8 +250,8 @@ export default function OyunlarPage() {
       flex: 2,
       filter: true,
     },
-    { 
-      field: "kategori", 
+    {
+      field: "kategori",
       headerName: "Kategori",
       cellRenderer: (params: { data: Oyun }) => {
         return (
@@ -232,10 +261,10 @@ export default function OyunlarPage() {
         );
       },
       minWidth: 120,
-      filter: true 
+      filter: true,
     },
-    { 
-      field: "kac_kisilik", 
+    {
+      field: "kac_kisilik",
       headerName: "Kişi Sayısı",
       cellRenderer: (params: { data: Oyun }) => {
         const kisiIcon = params.data.kac_kisilik === 1 ? "👤" : "👥";
@@ -247,10 +276,10 @@ export default function OyunlarPage() {
         );
       },
       minWidth: 100,
-      filter: true 
+      filter: true,
     },
-    { 
-      field: "aciklama", 
+    {
+      field: "aciklama",
       headerName: "Açıklama",
       cellRenderer: (params: { data: Oyun }) => {
         return (
@@ -261,7 +290,7 @@ export default function OyunlarPage() {
       },
       flex: 1,
       minWidth: 150,
-      filter: true 
+      filter: true,
     },
     {
       headerName: "İşlemler",
@@ -276,9 +305,7 @@ export default function OyunlarPage() {
             >
               <Pencil className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </Button>
-            <DeleteAlertModal 
-              onClick={() => oyunSil(params.data.id)}
-            />
+            <DeleteAlertModal onClick={() => oyunSil(params.data.id)} />
           </div>
         );
       },
@@ -308,7 +335,7 @@ export default function OyunlarPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-6">
-        <div className=" md:col-span-6 lg:col-span-4">
+        <div className="md:col-span-6 lg:col-span-4">
           <Label htmlFor="oyunAdi" className="mb-1">
             Oyun Adı
           </Label>
@@ -326,7 +353,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className=" md:col-span-6 lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-6 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="kategori" className="mb-1">
             Oyun Kategorisi
           </Label>
@@ -343,7 +370,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="cihaz" className="mb-1">
             Cihaz Türü
           </Label>
@@ -361,7 +388,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-2">
+        <div className="md:col-span-4 lg:col-span-3 xl:col-span-2">
           <Label htmlFor="kisi" className="mb-1">
             Kaç Kişilik
           </Label>
@@ -397,7 +424,7 @@ export default function OyunlarPage() {
           />
         </div>
 
-        <div className=" md:col-span-6 lg:col-span-4">
+        <div className="md:col-span-6 lg:col-span-4">
           <Label htmlFor="picture" className="mb-1">
             Oyun Görseli
           </Label>
@@ -407,12 +434,9 @@ export default function OyunlarPage() {
               id="gorsel"
               type="file"
               accept="image/*"
-              onChange={(e) => {
-                const files = e.target.files ? Array.from(e.target.files) : [];
-                handleFileUpload(files);
-              }}
+              onChange={handleFileSelect}
             />
-            {data.gorsel && (
+            {previewUrl && (
               <HoverCard>
                 <HoverCardTrigger>
                   <Button variant="ghost" size="icon">
@@ -421,7 +445,7 @@ export default function OyunlarPage() {
                 </HoverCardTrigger>
                 <HoverCardContent className="p-2 w-auto">
                   <img
-                    src={data.gorsel}
+                    src={previewUrl}
                     alt="Önizleme"
                     className="w-40 h-40 object-cover rounded-lg"
                   />
@@ -431,7 +455,7 @@ export default function OyunlarPage() {
           </div>
         </div>
 
-        <div className=" md:col-span-4 lg:col-span-3 xl:col-span-4  content-end">
+       <div className=" md:col-span-4 lg:col-span-3 xl:col-span-4  content-end">
           <div className="lg:self-end flex gap-y-2 gap-x-2 gap-2">
             <Button onClick={oyunKaydet} variant="outline">
               {duzenlenenId ? "Güncelle" : "Ekle"}
@@ -451,8 +475,8 @@ export default function OyunlarPage() {
         <h3 className="text-lg font-bold mb-4 text-neutral-700 dark:text-neutral-300">
           Eklenen Oyunlar ({oyunlar.length})
         </h3>
-        
-        <div 
+
+        <div
           className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
           style={{ width: "100%", height: "500px" }}
         >
