@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('oyunlar')
-      .select('*')
+      .select('id, oyun_adi,cihaz_turu, kac_kisilik, kategori, ea_playde_mi, aciklama, gorsel')
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
 
