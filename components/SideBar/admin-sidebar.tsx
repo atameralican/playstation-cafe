@@ -110,7 +110,7 @@ export function SidebarAdmin({ children }: { children: React.ReactNode }) {
           <div>
             <SidebarLink
               link={{
-                label: "Deplasman Admin",
+                label: "Admin User",
                 href: "/admin",
                 icon: (
                   <img
