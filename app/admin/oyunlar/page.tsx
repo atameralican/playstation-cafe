@@ -41,6 +41,13 @@ interface Oyun {
   ea_playde_mi: boolean;
   gorsel: string | null;
   aciklama?: string;
+  bulunan_masalar?:BulunanMasa[];
+}
+interface BulunanMasa {
+  id: number;
+  durum: string;
+  masa_no: string;
+  cihaz_turu: string;
 }
 
 export default function OyunlarPage() {
@@ -271,11 +278,37 @@ const oyunKaydet = async () => {
         return (
           <div className="flex items-center gap-1.5">
             <span className="text-base">{kisiIcon}</span>
-            <span className="font-medium">{params.data.kac_kisilik} Kişilik</span>
+            <span className="font-medium">
+              {params.data.kac_kisilik} Kişilik
+            </span>
           </div>
         );
       },
       minWidth: 100,
+      filter: true,
+    },
+    
+    {
+      field: "bulunan_masalar",
+      headerName: "Bulunduğu Masalar",
+      cellRenderer: (params: { data: Oyun }) => {
+        const masalar = params.data?.bulunan_masalar;
+        if (!masalar || masalar.length === 0) {
+          return "-";
+        }
+           return (
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {masalar.map((masa, index) => (
+          <span key={index}>
+            {masa.masa_no}
+            {index < masalar.length - 1 ? ', ' : ''}
+          </span>
+        ))}
+      </div>
+    );
+      },
+      flex: 1,
+      minWidth: 220,
       filter: true,
     },
     {
@@ -289,7 +322,7 @@ const oyunKaydet = async () => {
         );
       },
       flex: 1,
-      minWidth: 150,
+      minWidth: 100,
       filter: true,
     },
     {
@@ -494,7 +527,7 @@ const oyunKaydet = async () => {
             rowHeight={68}
             animateRows={true}
             pagination={true}
-            paginationPageSize={10}
+            paginationPageSize={20}
             paginationPageSizeSelector={[10, 20, 50]}
           />
         </div>
