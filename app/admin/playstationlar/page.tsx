@@ -5,12 +5,14 @@ import { Label } from "@/components/ui/label";
 import { psTypes, kasaTipleri } from "@/lib/adminPages";
 import React, { useState, useEffect, useRef } from "react";
 import SegmentedDep from "@/components/ui/segmentedDep";
+import Image from "next/image";
 import SelectBoxDep from "@/components/ui/selectBoxDep";
 import { showToast } from "@/components/ui/alertDep";
 import { useServiceHook } from "@/components/useServiceHook/useServiceHook";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import defaultImg from "@/public/logo.png"
 import DeleteAlertModal from "@/components/ui/deleteAlertDep";
 import {
   HoverCard,
@@ -302,33 +304,74 @@ const cihazDuzenle = (cihaz: Cihaz) => {
 
   // ========== DATAGRID ==============
   const colDefs: ColDef<Cihaz>[] = [
-    { field: "cihaz_turu", headerName: "Cihaz Türü", filter: true },
-    { field: "kasa_tipi", headerName: "Kasa Tipi", filter: true },
-    { field: "seri_no", headerName: "Seri No", filter: false, width: 250 },
-    { field: "hafiza", headerName: "Hafıza" ,filter:true},
     {
-      minWidth: 250,
+      headerName: "Acılış Hesabı",
       field: "acilis_hesabi",
-      headerName: "Açılış Hesabı",
+      cellRenderer: (params: { data: Cihaz }) => {
+        return (
+          <div className="flex items-center gap-3 py-2">
+            <div className="relative overflow-hidden rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <Image
+                src={params.data.cihaz_fotograf || defaultImg}
+                alt={params.data.cihaz_turu}
+                width={48}
+                height={48}
+                className="w-12 h-12 object-cover"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                {`${params?.data?.cihaz_turu} - ${params?.data?.kasa_tipi}`}
+                {params.data.hafiza && (
+                  <span className="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400">
+                    {params.data.hafiza}
+                  </span>
+                )}
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {params.data.acilis_hesabi}
+                </span>
+                
+              </div>
+            </div>
+          </div>
+        );
+      },
+      minWidth: 280,
+      flex: 2,
       filter: true,
     },
-    {
-      minWidth: 250,
+     {
+      minWidth: 100,
+      maxWidth: 150,
       field: "ikinci_hesap",
       headerName: "Ekür Hesap",
       filter: true,
     },
-    { field: "kol_iki_mail", headerName: "Kol İki Mail" },
     { 
       field: "yuklu_oyunlar", 
-      headerName: "Yüklü Oyun Sayısı",
+      headerName: "Oyun Sayısı",
       valueFormatter: (params) => {
         const oyunlar = params.value as number[] | undefined;
         return oyunlar ? `${oyunlar.length} oyun` : "0 oyun";
       },
-      width: 150 
+      minWidth: 80 ,
     },
-    { field: "aciklama", headerName: "Açıklama" },
+    // { field: "cihaz_turu", headerName: "Cihaz Türü", filter: true },
+    // { field: "kasa_tipi", headerName: "Kasa Tipi", filter: true },
+    { field: "seri_no", headerName: "Seri No", filter: false, width: 150 },
+    // { field: "hafiza", headerName: "Hafıza" ,filter:true},
+    // {
+    //   minWidth: 250,
+    //   field: "acilis_hesabi",
+    //   headerName: "Açılış Hesabı",
+    //   filter: true,
+    // },
+
+    { field: "kol_iki_mail", headerName: "Kol İki Mail" },
+    
+    { field: "aciklama", headerName: "Açıklama", minWidth:100},
     
      {
           headerName: "İşlemler",
@@ -350,9 +393,9 @@ const cihazDuzenle = (cihaz: Cihaz) => {
             );
           },
           width: 100,
-          pinned: "right",
-          sortable: false,
-          filter: false,
+      pinned: "right",
+      sortable: false,
+      filter: false,
         },
   ];
 
