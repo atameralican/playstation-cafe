@@ -63,11 +63,22 @@ export const BentoGridItem = ({
         <div className="flex flex-row md:flex-col gap-3 md:gap-4">
           {/* fotorafı */}
           <div className="relative w-2/5 md:w-full h-32 md:h-48 rounded-xl overflow-hidden flex-shrink-0">
-            <Image
+            {/* <Image
               alt={title}
               src={gorsel || logo}
               fill
               className="object-cover"
+            /> */}
+            <Image
+              alt={title}
+              src={gorsel || logo}
+              fill
+              sizes="(max-width: 768px) 40vw, (max-width: 1200px) 33vw, 25vw"
+              className="object-cover"
+              loading="lazy"
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
             />
           </div>
 
