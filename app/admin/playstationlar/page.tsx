@@ -147,11 +147,9 @@ export default function PlaystationlarPage() {
       method: "GET",
       url: "/api/cihazlar",
       onSuccess: (data) => {
-        console.log("/api/cihazlar: ", data);
         setCihazList(data as Cihaz[]);
       },
       onError: (error) => {
-        console.log("/api/cihazlar: ", error.message);
         showToast(`Cihaz Listesi Yüklenemedi:  ${error.message}`, "error");
       },
     });
@@ -206,7 +204,6 @@ export default function PlaystationlarPage() {
           }
         },
         onError: (error) => {
-          console.log("/api/cihazlar/hesap-oyunlari: ", error.message);
           showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
           setAvailableGames([]);
         },

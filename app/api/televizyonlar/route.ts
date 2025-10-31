@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('televizyonlar')
-      .select('*')
+      .select('id ,marka ,model ,seriNo ,boyut ,garanti ,ariza ,aciklama ,tv_fotograf ')
       .eq('is_deleted', false)
       .order('marka', { ascending: false });
 

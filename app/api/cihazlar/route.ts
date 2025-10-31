@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('cihazlar')
-      .select('*')
+      .select('  id ,cihaz_turu ,seri_no ,acilis_hesabi ,ikinci_hesap ,kol_iki_mail ,kasa_tipi ,aciklama ,cihaz_fotograf ,hafiza ,ekstra_2 ,yuklu_oyunlar ')
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 

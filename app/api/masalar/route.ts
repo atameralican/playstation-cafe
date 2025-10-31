@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       televizyonObject = tvData;
     }
 
-    // ✅ Masayı kaydet (yuklu_oyunlar YOK!)
+    // ✅ Masayı kaydet
     const { data, error } = await supabase
       .from("masalar")
       .insert([
@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
           cihaz: cihaz1Object,
           cihaz2: cihaz2Object,
           televizyon: televizyonObject,
-          // ❌ yuklu_oyunlar: yukluOyunlar, KALDIRILDI!
           aciklama: body.aciklama || null,
           problem: body.problem || null,
           durum: "aktif",

@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/apiAuth";
 
-// GET - Hesaplar listele (oyun detayları ile, is_deleted false olanlar)
+// GET 
 export async function GET() {
   try {
     const { data: hesaplar, error: hesapError } = await supabase
       .from("hesaplar")
-      .select("*")
+      .select("id ,mail ,mail_sifre,kullanici_adi ,ea_play_varmi ,ea_play_alinma_tarihi ,ea_play_bitis_tarihi ,oyunlar ")
       .eq("is_deleted", false)
       .order("mail", { ascending: false });
 
