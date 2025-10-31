@@ -24,43 +24,94 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+
 interface MasaBilgisi {
   masa_no: number;
   id: number;
+  cihaz_turu: string;
 }
-
-interface Oyun {
+interface OyunMasa {
   id: number;
   oyun_adi: string;
-  cihaz_turu: string;
   kac_kisilik: number;
   kategori: string;
   ea_playde_mi: boolean;
   gorsel: string | null;
-  aciklama?: string;
-  ps3_masalar: MasaBilgisi[];
-  ps4_masalar: MasaBilgisi[];
+  bulunan_masalar: MasaBilgisi[];
   ps5_masalar: MasaBilgisi[];
+  ps4_masalar: MasaBilgisi[];
+  ps3_masalar: MasaBilgisi[];
 }
-
 function OyunListesiPage() {
-  const [searchText, setSearchText] = useState("");
-  const [oyunlar, setOyunlar] = useState<Oyun[]>([]);
+  const [oyunlar, setOyunlar] = useState<OyunMasa[]>([]);
   const { serviseGit } = useServiceHook();
+
+  const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredGames, setFilteredGames] = useState<Oyun[]>([]);
+  const [filteredGames, setFilteredGames] = useState<OyunMasa[]>([]);
   const [psType, setPsType] = useState({
     ps5: true,
     ps4: true,
     ps3: true,
   });
   const [person, setPerson] = useState({ bir: true, iki: true, dort: true });
-
+  // şu anda amac oyunlar tablosunu çekerek oradan gelen masadkai oyunlar ile oyun listesi sayfasını oluşlturmak ve orada kullanılan servisleri silmek
+  // oradaki servis çok yavastı onun yerine bunu kullanmak daha da hızlandırabilir denemeye çalışacağız.
   useEffect(() => {
     oyunlariYukle();
   }, []);
 
-  // ================= FİLTER ==========
+  const oyunlariYukle = async () => {
+    await serviseGit<OyunMasa[]>({
+      url: "/api/oyunlar/oyunMasa",
+      onSuccess: (data) => {
+        const gruplanmisData = (data as OyunMasa[]).map((oyun) => {
+          const ps3_masalar: Array<{ masa_no: number; id: number }> = [];
+          const ps4_masalar: Array<{ masa_no: number; id: number }> = [];
+          const ps5_masalar: Array<{ masa_no: number; id: number }> = [];
+
+          oyun.bulunan_masalar?.forEach((masa) => {
+            const masaData = {
+              masa_no: masa.masa_no,
+              id: masa.id,
+            };
+
+            switch (masa.cihaz_turu) {
+              case "PS3":
+                ps3_masalar.push(masaData);
+                break;
+              case "PS4":
+                ps4_masalar.push(masaData);
+                break;
+              case "PS5":
+                ps5_masalar.push(masaData);
+                break;
+            }
+          });
+
+          return {
+            id: oyun.id,
+            oyun_adi: oyun.oyun_adi,
+            kategori: oyun.kategori,
+            gorsel: oyun.gorsel,
+            kac_kisilik: oyun.kac_kisilik,
+            ea_playde_mi: oyun.ea_playde_mi,
+            ps3_masalar,
+            ps4_masalar,
+            ps5_masalar,
+          };
+        });
+        setOyunlar(gruplanmisData as OyunMasa[]);
+        setFilteredGames(gruplanmisData as OyunMasa[]);
+        console.log(data);
+        console.log("gruplanmisData", gruplanmisData);
+      },
+      onError: (error) => {
+        showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
+      },
+    });
+  };
+
   useEffect(() => {
     let sonuc = [...oyunlar];
 
@@ -105,22 +156,6 @@ function OyunListesiPage() {
     }));
   };
 
-  //=============== SERVŞCE ==================
-
-  const oyunlariYukle = async () => {
-    await serviseGit<Oyun[]>({
-      url: "/api/public/oyunlar",
-      method: "GET",
-      onSuccess: (data) => {
-        setOyunlar(data);
-        setFilteredGames(data);
-      },
-      onError: (error) => {
-        showToast(`Oyunlar yüklenemedi: ${error.message}`, "error");
-      },
-    });
-  };
-
   //=============== PAGING ==================
   const itemsPerPage = 5;
   const totalPages = Math.ceil(filteredGames.length / itemsPerPage);
@@ -136,109 +171,112 @@ function OyunListesiPage() {
           borderWidth={2}
           shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
         />
-       {oyunlar.length>0&& <>
-       <CardHeader>
-          <CardTitle>
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex md:flex-row flex-col gap-4 justify-between items-center w-full">
-                <Input
-                  type="text"
-                  autoFocus
-                  placeholder="Oyun adı..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  className="md:w-1/4 w-full"
-                />
+        {oyunlar.length > 0 && (
+          <>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-col gap-4 w-full">
+                  <div className="flex md:flex-row flex-col gap-4 justify-between items-center w-full">
+                    <Input
+                      type="text"
+                      autoFocus
+                      placeholder="Oyun adı..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      className="md:w-1/4 w-full"
+                    />
 
-                {filteredGames.length > 0 && (
-                  <div className="hidden md:block text-center text-sm text-gray-600 dark:text-gray-400">
-                    <strong>{filteredGames.length}</strong> oyun bulundu.
+                    {filteredGames.length > 0 && (
+                      <div className="hidden md:block text-center text-sm text-gray-600 dark:text-gray-400">
+                        <strong>{filteredGames.length}</strong> oyun bulundu.
+                      </div>
+                    )}
+
+                    <Card className="p-2 w-full md:w-fit">
+                      <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center gap-1">
+                          <Toggle
+                            pressed={person.bir}
+                            onPressedChange={() => tooglePerson("bir")}
+                            aria-label="1 kişilik oyun"
+                            size="sm"
+                          >
+                            <div className="relative">
+                              <Gamepad2 className="w-4 h-4" />
+                              <span className="absolute -top-1 -right-1 text-[10px] font-bold"></span>
+                            </div>
+                          </Toggle>
+                          <Toggle
+                            pressed={person.iki}
+                            onPressedChange={() => tooglePerson("iki")}
+                            aria-label="2 kişilik oyun"
+                            size="sm"
+                          >
+                            <div className="relative">
+                              <Gamepad2 className="w-4 h-4" />
+                              <span className="absolute -top-2 -right-1 text-[10px] font-bold">
+                                2
+                              </span>
+                            </div>
+                          </Toggle>
+                          <Toggle
+                            pressed={person.dort}
+                            onPressedChange={() => tooglePerson("dort")}
+                            aria-label="4 kişilik oyun"
+                            size="sm"
+                          >
+                            <div className="relative">
+                              <Gamepad2 className="w-4 h-4" />
+                              <span className="absolute -top-2 -right-1 text-[10px] font-bold">
+                                4
+                              </span>
+                            </div>
+                          </Toggle>
+                        </div>
+
+                        <hr className="w-px h-6 bg-gray-400 dark:bg-gray-400 border-0 mx-3" />
+
+                        <div className="flex items-center gap-1">
+                          <Toggle
+                            pressed={psType.ps5}
+                            onPressedChange={() => tooglePsType("ps5")}
+                            aria-label="Playstation5"
+                            size="sm"
+                          >
+                            PS5
+                          </Toggle>
+                          <Toggle
+                            pressed={psType.ps4}
+                            onPressedChange={() => tooglePsType("ps4")}
+                            aria-label="Playstation4"
+                            size="sm"
+                          >
+                            PS4
+                          </Toggle>
+                          <Toggle
+                            pressed={psType.ps3}
+                            onPressedChange={() => tooglePsType("ps3")}
+                            aria-label="Playstation3"
+                            size="sm"
+                          >
+                            PS3
+                          </Toggle>
+                        </div>
+                      </div>
+                    </Card>
                   </div>
-                )}
 
-                <Card className="p-2 w-full md:w-fit">
-                  <div className="flex items-center justify-center gap-1">
-                    <div className="flex items-center gap-1">
-                      <Toggle
-                        pressed={person.bir}
-                        onPressedChange={() => tooglePerson("bir")}
-                        aria-label="1 kişilik oyun"
-                        size="sm"
-                      >
-                        <div className="relative">
-                          <Gamepad2 className="w-4 h-4" />
-                          <span className="absolute -top-1 -right-1 text-[10px] font-bold"></span>
-                        </div>
-                      </Toggle>
-                      <Toggle
-                        pressed={person.iki}
-                        onPressedChange={() => tooglePerson("iki")}
-                        aria-label="2 kişilik oyun"
-                        size="sm"
-                      >
-                        <div className="relative">
-                          <Gamepad2 className="w-4 h-4" />
-                          <span className="absolute -top-2 -right-1 text-[10px] font-bold">
-                            2
-                          </span>
-                        </div>
-                      </Toggle>
-                      <Toggle
-                        pressed={person.dort}
-                        onPressedChange={() => tooglePerson("dort")}
-                        aria-label="4 kişilik oyun"
-                        size="sm"
-                      >
-                        <div className="relative">
-                          <Gamepad2 className="w-4 h-4" />
-                          <span className="absolute -top-2 -right-1 text-[10px] font-bold">
-                            4
-                          </span>
-                        </div>
-                      </Toggle>
+                  {filteredGames.length > 0 && (
+                    <div className="md:hidden text-center text-sm text-gray-600 dark:text-gray-400">
+                      <strong>{filteredGames.length}</strong> oyun bulundu.
                     </div>
-
-                    <hr className="w-px h-6 bg-gray-400 dark:bg-gray-400 border-0 mx-3" />
-
-                    <div className="flex items-center gap-1">
-                      <Toggle
-                        pressed={psType.ps5}
-                        onPressedChange={() => tooglePsType("ps5")}
-                        aria-label="Playstation5"
-                        size="sm"
-                      >
-                        PS5
-                      </Toggle>
-                      <Toggle
-                        pressed={psType.ps4}
-                        onPressedChange={() => tooglePsType("ps4")}
-                        aria-label="Playstation4"
-                        size="sm"
-                      >
-                        PS4
-                      </Toggle>
-                      <Toggle
-                        pressed={psType.ps3}
-                        onPressedChange={() => tooglePsType("ps3")}
-                        aria-label="Playstation3"
-                        size="sm"
-                      >
-                        PS3
-                      </Toggle>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {filteredGames.length > 0 && (
-                <div className="md:hidden text-center text-sm text-gray-600 dark:text-gray-400">
-                  <strong>{filteredGames.length}</strong> oyun bulundu.
+                  )}
                 </div>
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <hr /></>}
+              </CardTitle>
+            </CardHeader>
+            <hr />
+          </>
+        )}
         <CardContent>
           {filteredGames.length > 0 ? (
             <>
@@ -256,7 +294,7 @@ function OyunListesiPage() {
                     ps4_masalar={item.ps4_masalar}
                     ps5_masalar={item.ps5_masalar}
                     className={i % 5 === 0 ? "md:col-span-2" : ""}
-                  /> 
+                  />
                 ))}
               </BentoGrid>
               {totalPages > 1 && (
